@@ -1,0 +1,13 @@
+
+
+router bgp {{ bgp.as }}
+
+  address-family evpn
+    
+{% for n in bgp.neighbors %}
+{%   for af in ['ipv4'] if n[af] is defined %}
+    neighbor {{ n[af] }} activate
+{%   endfor %}
+{% endfor %}
+
+

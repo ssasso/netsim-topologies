@@ -1,0 +1,13 @@
+{% for l in links|default([]) %}
+{% if l.leaf_vlan is defined %}
+
+vlan {{ l.leaf_vlan }}
+
+interface {{ l.ifname }}
+ switchport
+ switchport mode access
+ switchport access vlan {{ l.leaf_vlan }}
+
+{% endif %}
+{% endfor %}
+

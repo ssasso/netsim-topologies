@@ -1,0 +1,42 @@
+vrf instance V6000
+!
+ip routing vrf V6000
+!
+interface Vxlan1
+   vxlan vrf V6000 vni 6000
+!
+router bgp {{ bgp.as }}
+   vrf V6000
+      rd {{ loopback.ipv4|ipaddr('address') }}:6000
+      route-target import evpn 65000:6000
+      route-target export evpn 65000:6000
+      redistribute connected
+      neighbor 192.168.0.2 remote-as 64999
+      address-family ipv4
+        neighbor 192.168.0.2 activate
+
+
+{% for l in links|default([]) %}
+{% if l.leaf_vlan is defined %}
+
+{% if l.leaf_address is defined %}
+interface Vlan {{ l.leaf_vlan }}
+
+{% if l.leaf_vrf is defined %}
+  vrf {{ l.leaf_vrf }}
+{% endif %}
+
+  ip address {{ l.leaf_address }}
+
+{% if l.leaf_virtual_address is defined %}
+  ip virtual-router address {{ l.leaf_virtual_address }}
+{% endif %}
+
+
+{% endif %}
+
+
+{% endif %}
+{% endfor %}
+
+

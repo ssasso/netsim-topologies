@@ -1,0 +1,13 @@
+service routing protocols model multi-agent
+!
+interface Loopback1
+  ip address {{ bgp.vtep_address}}/32
+  no shutdown
+  description VTEP
+  ip ospf area 0.0.0.0
+
+
+ip virtual-router mac-address 00:00:aa:bb:02:cc
+
+ip routing
+

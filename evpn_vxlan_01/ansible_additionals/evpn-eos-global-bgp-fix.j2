@@ -1,0 +1,8 @@
+
+
+router bgp {{ bgp.as }}
+  router-id {{ loopback.ipv4|ipaddr('address') }}
+  no bgp default ipv4-unicast
+  no address-family ipv4
+
+

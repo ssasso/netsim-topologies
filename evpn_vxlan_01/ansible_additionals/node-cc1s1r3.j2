@@ -1,0 +1,19 @@
+
+/ip address add interface=ether2 address=192.168.0.2/30
+/ip route add dst-address=192.168.0.0/16 gateway=192.168.0.1
+
+/interface bridge
+add name=loopback2 protocol-mode=none
+
+/ip address
+add address=192.168.255.3/32 interface=loopback2
+
+/routing bgp instance
+set default as=64999
+
+/routing bgp network
+add network=192.168.255.3/32
+
+/routing bgp peer
+add name=LEAF-1 remote-address=192.168.0.1 remote-as=65000
+

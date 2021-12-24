@@ -1,0 +1,132 @@
+---
+defaults:
+  device: eos
+  extra_attributes.link: [ leaf_vlan, leaf_address, leaf_vrf, leaf_virtual_address ]
+  bgp:
+    extra_attributes.node: [ vtep_address ]
+    as: 65000
+    advertise_loopback: False
+
+module: [ bgp, ospf ]
+
+nodes:
+  spine1:
+    id: 1
+    bgp.rr: True
+    bgp.next_hop_self: False
+  spine2:
+    id: 2
+    bgp.rr: True
+    bgp.next_hop_self: False
+  leaf1:
+    bgp.vtep_address: 10.255.255.1
+  leaf2:
+    bgp.vtep_address: 10.255.255.2
+  leaf3:
+    bgp.vtep_address: 10.255.255.3
+  cc1s1r1:
+    module: []
+    device: routeros
+    config: [ ansible_additionals/node-cc1s1r1.j2 ]
+  cc1s2r1:
+    module: []
+    device: routeros
+    config: [ ansible_additionals/node-cc1s2r1.j2 ]
+  cc1s1r2:
+    module: []
+    device: routeros
+    config: [ ansible_additionals/node-cc1s1r2.j2 ]
+  cc1s3r1:
+    module: []
+    device: routeros
+    config: [ ansible_additionals/node-cc1s3r1.j2 ]
+  cc1s1r3:
+    module: []
+    device: routeros
+    config: [ ansible_additionals/node-cc1s1r3.j2 ]
+
+links:
+- spine1:
+  leaf1:
+- spine2:
+  leaf1:
+- spine1:
+  leaf2:
+- spine2:
+  leaf2:
+- spine1:
+  leaf3:
+- spine2:
+  leaf3:
+- leaf1:
+  cc1s1r1:
+  type: lan
+  role: external
+  prefix: false
+  leaf_vlan: 10
+  leaf_vrf: V6000
+  leaf_address: 192.168.10.251/24
+  leaf_virtual_address: 192.168.10.254
+- leaf2:
+  cc1s2r1:
+  type: lan
+  role: external
+  prefix: false
+  leaf_vlan: 10
+  leaf_vrf: V6000
+  leaf_address: 192.168.10.252/24
+  leaf_virtual_address: 192.168.10.254
+- leaf1:
+  cc1s1r2:
+  type: lan
+  role: external
+  prefix: false
+  leaf_vlan: 20
+  leaf_vrf: V6000
+  leaf_address: 192.168.20.251/24
+  leaf_virtual_address: 192.168.20.254
+- leaf3:
+  cc1s3r1:
+  type: lan
+  role: external
+  prefix: false
+  leaf_vlan: 20
+  leaf_vrf: V6000
+  leaf_address: 192.168.20.253/24
+  leaf_virtual_address: 192.168.20.254
+- leaf1:
+  cc1s1r3:
+  type: p2p
+  role: external
+  prefix: false
+  leaf_vlan: 6
+  leaf_vrf: V6000
+  leaf_address: 192.168.0.1/30
+
+groups:
+  spines:
+    members: [ spine1, spine2 ]
+    config:
+      - ansible_additionals/evpn-eos-global-ospf-ecmp.j2
+      - ansible_additionals/evpn-eos-global-bgp-fix.j2
+      - ansible_additionals/evpn-eos-global-bgp-evpn.j2
+      - ansible_additionals/evpn-eos-spine-bgp-fix.j2
+  leafs:
+    members: [ leaf1, leaf2, leaf3 ]
+    config:
+      - ansible_additionals/evpn-eos-global-ospf-ecmp.j2
+      - ansible_additionals/evpn-eos-leafs-00-global.j2
+      - ansible_additionals/evpn-eos-leafs-01-vtep.j2
+      - ansible_additionals/evpn-eos-global-bgp-fix.j2
+      - ansible_additionals/evpn-eos-global-bgp-evpn.j2
+      - ansible_additionals/evpn-eos-leafs-02-link-vlans.j2
+  leaf_vni10:
+    members: [ leaf1, leaf2 ]
+    config: [ ansible_additionals/evpn-eos-leafs-vni-10.j2 ]
+  leaf_vni20:
+    members: [ leaf1, leaf3 ]
+    config: [ ansible_additionals/evpn-eos-leafs-vni-20.j2 ]
+  leaf_vni6000:
+    members: [ leaf1, leaf2, leaf3 ]
+    config: [ ansible_additionals/evpn-eos-leafs-vni-l3-6000.j2 ]
+

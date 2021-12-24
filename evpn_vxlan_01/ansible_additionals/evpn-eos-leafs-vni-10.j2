@@ -1,0 +1,10 @@
+!
+interface Vxlan1
+   vxlan vlan 10 vni 10
+!
+router bgp {{ bgp.as }}
+  vlan 10
+    rd auto
+    route-target both 10:10
+    redistribute learned
+

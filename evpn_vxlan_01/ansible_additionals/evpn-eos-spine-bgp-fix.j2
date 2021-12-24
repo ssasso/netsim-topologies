@@ -1,0 +1,14 @@
+{#
+netsim by default creates a iBGP session between RR.
+We do not want this to happens on our spines
+#}
+
+router bgp {{ bgp.as }}
+{% for n in bgp.neighbors %}
+{%   if bgp.rr|default('') and n.rr|default('') %}
+{%     for af in ['ipv4','ipv6'] if n[af] is defined %}
+  no neighbor {{ n[af] }}
+{%     endfor %}
+{%   endif %}
+{% endfor %}
+
