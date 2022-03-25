@@ -1,0 +1,51 @@
+---
+defaults:
+  device: eos
+
+nodes:
+  sw1:
+    id: 1
+    config: [ ansible_additionals/node-sw1.j2 ]
+    mlag:
+      domain: 10
+      icl: 1000
+      vlan: 4090
+      ip: 192.0.2.1/30
+      peer: 192.0.2.2
+  sw2:
+    id: 2
+    config: [ ansible_additionals/node-sw2.j2 ]
+    mlag:
+      domain: 10
+      icl: 1000
+      vlan: 4090
+      ip: 192.0.2.2/30
+      peer: 192.0.2.1
+  endpoint:
+    id: 3
+    config: [ ansible_additionals/node-endp.j2 ]
+
+links:
+- sw1: { channelgroup: 1000 }
+  sw2: { channelgroup: 1000 }
+  prefix: false
+- sw1: { channelgroup: 1000 }
+  sw2: { channelgroup: 1000 }
+  prefix: false
+- sw1: { channelgroup: 1, mlagid: 1}
+  endpoint: { channelgroup: 1 }
+  prefix: false
+- sw2: { channelgroup: 1, mlagid: 1}
+  endpoint: { channelgroup: 1 }
+  prefix: false
+
+
+groups:
+  lagconfig:
+    members: [ sw1, sw2, endpoint ]
+    config:
+      - ansible_additionals/lagconfig.j2
+  mlag:
+    members: [ sw1, sw2 ]
+    config:
+      - ansible_additionals/mlag.j2

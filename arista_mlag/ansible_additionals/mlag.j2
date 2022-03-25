@@ -1,0 +1,30 @@
+{% if mlag is defined %}
+
+vlan {{ mlag.vlan }}
+  trunk group mlag-peer
+no spanning-tree vlan {{ mlag.vlan }}
+
+interface port-channel {{ mlag.icl }}
+  switchport mode trunk
+  switchport trunk group mlag-peer
+
+interface vlan {{ mlag.vlan }}
+  ip address {{ mlag.ip }}
+
+mlag
+  local-interface vlan {{ mlag.vlan }}
+  peer-address {{ mlag.peer }}
+  peer-link port-channel {{ mlag.icl }}
+  domain-id {{ mlag.domain }}
+
+
+{% for l in interfaces|default([]) %}
+{% if l.channelgroup is defined and l.mlagid is defined %}
+interface port-channel {{ l.channelgroup }}
+  mlag {{ l.mlagid }}
+{% endif %}
+{% endfor %}
+
+
+{% endif %}
+

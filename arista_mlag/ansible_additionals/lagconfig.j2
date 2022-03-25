@@ -1,0 +1,13 @@
+{% for l in interfaces|default([]) %}
+
+{% if l.channelgroup is defined %}
+
+interface port-channel {{ l.channelgroup }}
+
+interface {{ l.ifname }}
+  channel-group {{ l.channelgroup }} mode active
+
+{% endif %}
+
+{% endfor %}
+
