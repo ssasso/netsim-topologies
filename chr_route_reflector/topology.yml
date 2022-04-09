@@ -1,0 +1,53 @@
+---
+defaults:
+  device: routeros
+
+module: [ bgp, ospf ]
+bgp.as: 65000
+
+nodes:
+  a:
+    bgp.originate: [ 10.20.30.0/24 ]
+    config: [ add_a.j2 ]
+  b:
+  c:
+  d:
+  rr:
+    bgp.rr: True
+    id: 1
+    graphite.icon: server
+  y:
+    bgp.as: 65100
+    bgp.originate: [ 10.42.42.0/24 ]
+    module: [ bgp ]
+    config: [ add_y.j2 ]
+    graphite.level: 2
+  linux1:
+    module: []
+    device: linux
+    graphite.icon: host
+    graphite.level: 3
+  linux2:
+    module: []
+    device: linux
+    graphite.level: 3
+  linux3:
+    module: []
+    device: linux
+    graphite.level: 3
+
+links:
+- a-b
+- a-c
+- b-d
+- c-d
+- b-rr
+- d-rr
+- c-y
+- d-y
+- y-linux1
+- y:
+  linux2:
+  linux3:
+- y:
+
