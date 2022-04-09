@@ -4,3 +4,5 @@
 
 This *topology.yml* file is also a reference for generating *graphite* outputs.
 
+![graphite](graphite_example.png)
+
