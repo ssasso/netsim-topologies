@@ -1,0 +1,75 @@
+---
+defaults:
+  device: vyos
+
+vrfs:
+  blue:
+
+module: [ vrf,ospf,bgp,mpls ]
+bgp.as: 65000
+
+nodes:
+  p1:
+    id: 1
+    mpls.ldp: true
+    module: [ ospf,mpls ]
+    bgp.as: 65000
+  rr1:
+    id: 8
+    mpls:
+      ldp: true
+      vpn: true
+    bgp.rr: true
+  pe1:
+    mpls:
+      vpn: true
+      ldp: true
+    id: 11
+  pe2:
+     mpls:
+       vpn: true
+       ldp: true
+     id: 12
+  cb1:
+    module: [ bgp ]
+    bgp.as: 65101
+    id: 21
+  cb2:
+    module: [ bgp ]
+    bgp.as: 65102
+    id: 22
+  cb3:
+    module: [ bgp ]
+    bgp.as: 65103
+    id: 23
+  cb4:
+    module: [ bgp ]
+    bgp.as: 65104
+    id: 24
+  cb5:
+    module: [ ospf ]
+    id: 25
+
+links:
+- pe1:
+  p1:
+- pe2:
+  p1:
+- p1:
+  rr1:
+- pe1: { vrf: blue }
+  cb1:
+- pe2: { vrf: blue }
+  cb1:
+- pe1: { vrf: blue }
+  cb2:
+- pe2: { vrf: blue }
+  cb2:
+- pe1: { vrf: blue }
+  cb3:
+- pe2: { vrf: blue }
+  cb4:
+- pe1: { vrf: blue }
+  cb5:
+  ospf.cost: 66
+

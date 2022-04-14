@@ -1,0 +1,41 @@
+---
+defaults:
+  device: vyos
+
+module: [ ospf,bgp,mpls ]
+bgp.as: 65000
+
+nodes:
+  p1:
+    mpls.ldp: true
+    module: [ ospf,mpls ]
+    #bgp.as: 65000
+  pe1:
+    mpls.ldp: true
+    id: 11
+  pe2:
+     mpls.ldp: true
+     id: 12
+  isp1:
+    module: [ bgp ]
+    bgp.as: 65101
+    id: 21
+  isp2:
+    module: [ bgp ]
+    bgp.as: 65102
+    id: 22
+
+links:
+- p1:
+  pe1:
+- p1:
+  pe2:
+- pe1:
+  isp1:
+- pe2:
+  isp2:
+- isp1:
+  prefix.ipv4: 100.64.1.0/24
+- isp2:
+  prefix.ipv4: 100.64.2.0/24
+
