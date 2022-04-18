@@ -1,0 +1,99 @@
+#!/bin/bash
+
+{% include 'linux_install_opennhrp.j2' %}
+
+ip tunnel add gre1 mode gre key 1 local 10.200.0.21
+ip address add 10.150.150.21/24 dev gre1
+ip link set up dev gre1
+sleep 1
+
+opennhrp -d
+
+sleep 1
+
+
+ip link add dum1 type dummy
+ip address add 10.90.90.21/32 dev dum1
+ip link set up dev dum1
+
+
+echo > /etc/bird/bird.conf
+cat <<EOT >> /etc/bird/bird.conf
+
+log syslog all;
+
+router id 10.90.90.21;
+
+protocol kernel {
+    scan time 5;
+    learn;
+    merge paths yes;
+    persist yes;
+
+    ipv4 {
+        import all;
+        export where source ~ [ RTS_STATIC, RTS_BGP ];
+    };
+}
+
+template direct tpl_dir {
+    ipv4 {
+        import all;
+    };
+}
+
+protocol device dvc {
+    scan time 5;
+    interface "dum*";
+    interface "eth*";
+    interface "gre*";
+}
+
+
+template bgp tpl_bgp {
+    local as 65000;
+    ipv4 {
+        import all;
+        export none;
+    };
+}
+
+
+filter Export_DUM
+{
+    if ( net = 10.90.90.21/32 ) then accept;
+    reject;
+};
+
+filter Import_DIRECT
+{
+    if ( net = 10.90.90.21/32 ) then accept;
+    if ( net = 10.150.150.0/24 ) then accept;
+    reject;
+};
+
+
+protocol direct dir_dum from tpl_dir {
+    ipv4 {
+        import filter Import_DIRECT;
+    };
+}
+
+protocol bgp bgp1 from tpl_bgp
+{
+    neighbor 10.150.150.1 as 65000;
+    ipv4 {
+        export filter Export_DUM;
+        next hop self;
+    };
+}
+
+EOT
+
+systemctl restart bird || e=1
+
+
+
+
+
+

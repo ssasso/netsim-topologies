@@ -1,0 +1,34 @@
+
+apt install -y make gcc build-essential pkgconf libc-ares-dev bird2
+
+mkdir -p /root/opennhrp
+cd /root/opennhrp
+
+wget -c https://downloads.sourceforge.net/project/opennhrp/opennhrp/opennhrp-0.14.1.tar.bz2
+
+tar xjvf opennhrp-0.14.1.tar.bz2
+cd opennhrp-0.14.1/
+make && make install
+
+
+cat <<SCRIPT >/etc/opennhrp/opennhrp-script
+#!/bin/bash
+#
+SCRIPT
+chmod +x /etc/opennhrp/opennhrp-script
+
+
+cat <<SCRIPT >/etc/opennhrp/opennhrp.conf
+
+interface gre1
+    map 10.150.150.1/24 10.200.0.1 register
+    cisco-authentication secret
+    holding-time 300
+    multicast nhs
+    redirect
+    shortcut
+
+SCRIPT
+
+cd
+

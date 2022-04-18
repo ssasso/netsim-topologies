@@ -1,0 +1,14 @@
+set vrf name overlay table 100
+
+# Add additional dummy for overlay testing
+set interfaces dummy dum1 address '10.90.90.{{local_id}}/32'
+set interfaces dummy dum1 vrf overlay
+
+set interfaces tunnel tun0 address '10.150.150.{{local_id}}/24'
+set interfaces tunnel tun0 encapsulation 'gre'
+set interfaces tunnel tun0 multicast 'enable'
+set interfaces tunnel tun0 parameters ip key '1'
+set interfaces tunnel tun0 source-interface 'eth1'
+set interfaces tunnel tun0 vrf overlay
+
+

@@ -1,0 +1,39 @@
+#!/bin/vbash
+source /opt/vyatta/etc/functions/script-template
+
+if [ "$(id -g -n)" != 'vyattacfg' ] ; then
+    exec sg vyattacfg -c "/bin/vbash $(readlink -f $0) $@"
+fi
+
+# Configuration items start here
+
+configure
+
+{% set local_id = 1 %}
+
+{% include 'overlay_intf.j2' %}
+
+set protocols nhrp tunnel tun0 cisco-authentication 'secret'
+set protocols nhrp tunnel tun0 holding-time '300'
+set protocols nhrp tunnel tun0 multicast dynamic
+set protocols nhrp tunnel tun0 redirect
+set protocols nhrp tunnel tun0 shortcut
+
+
+set vrf name overlay protocols bgp address-family ipv4-unicast network 10.90.90.1/32
+set vrf name overlay protocols bgp listen range 10.150.150.0/24 peer-group 'Spokes'
+set vrf name overlay protocols bgp local-as '65000'
+set vrf name overlay protocols bgp parameters router-id '10.150.150.1'
+set vrf name overlay protocols bgp peer-group Spokes address-family ipv4-unicast route-reflector-client
+set vrf name overlay protocols bgp peer-group Spokes address-family ipv4-unicast soft-reconfiguration inbound
+set vrf name overlay protocols bgp peer-group Spokes remote-as '65000'
+set vrf name overlay protocols bgp peer-group Spokes update-source 'tun0'
+
+
+# Commit, save and exit from subshell
+
+commit
+save
+exit
+
+

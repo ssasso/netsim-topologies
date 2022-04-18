@@ -1,0 +1,32 @@
+---
+defaults:
+  device: vyos
+
+
+nodes:
+  hub:
+    id: 1
+    config: [ add/hub.j2 ]
+  spoke1:
+    id: 11
+    config: [ add/spoke1.j2 ]
+  spoke2:
+    id: 12
+    config: [ add/spoke2.j2 ]
+  linu1:
+    id: 21
+    device: linux
+    config: [ add/linu1.j2 ]
+  linu2:
+    id: 22
+    device: linux
+    config: [ add/linu2.j2 ]
+
+links:
+- hub:
+  spoke1:
+  spoke2:
+  linu1:
+  linu2:
+  prefix.ipv4: 10.200.0.0/24
+
