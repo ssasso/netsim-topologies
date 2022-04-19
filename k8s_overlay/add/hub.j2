@@ -1,0 +1,63 @@
+#!/bin/vbash
+source /opt/vyatta/etc/functions/script-template
+
+if [ "$(id -g -n)" != 'vyattacfg' ] ; then
+    exec sg vyattacfg -c "/bin/vbash $(readlink -f $0) $@"
+fi
+
+# Configuration items start here
+
+configure
+
+{% set local_id = 1 %}
+
+set protocols bgp local-as 65000
+set protocols bgp parameters router-id 10.200.0.{{ local_id }}
+set protocols bgp parameters default no-ipv4-unicast
+set protocols bgp address-family l2vpn-evpn advertise-all-vni
+#set protocols bgp address-family l2vpn-evpn advertise ipv4 unicast
+set protocols bgp address-family l2vpn-evpn advertise-svi-ip
+
+set protocols bgp address-family l2vpn-evpn advertise-default-gw
+
+set protocols bgp listen range 10.200.0.0/24 peer-group 'Spokes'
+
+set protocols bgp peer-group Spokes address-family l2vpn-evpn route-reflector-client
+set protocols bgp peer-group Spokes remote-as '65000'
+set protocols bgp peer-group Spokes capability dynamic
+
+# This on the Leaf Only??
+#set protocols bgp peer-group Spokes address-family l2vpn-evpn nexthop-self
+
+# Add VRF overlay
+set vrf name overlay table 100
+
+# Add VXLAN VNI 100
+set interfaces vxlan vxlan100 parameters nolearning
+set interfaces vxlan vxlan100 port '4789'
+set interfaces vxlan vxlan100 source-address '10.200.0.{{ local_id }}'
+set interfaces vxlan vxlan100 vni '100'
+
+set interfaces bridge br100 member interface vxlan100
+
+set interfaces bridge br100 address 10.150.150.1/24
+set interfaces bridge br100 vrf overlay
+
+# Overlay BGP and testing dummy
+set interfaces dummy dum1 address 10.255.254.253/32
+set interfaces dummy dum1 vrf overlay
+
+set vrf name overlay protocols bgp address-family ipv4-unicast network 10.255.254.253/32
+set vrf name overlay protocols bgp listen range 10.150.150.0/24 peer-group 'pods'
+set vrf name overlay protocols bgp local-as '65000'
+set vrf name overlay protocols bgp peer-group pods address-family ipv4-unicast soft-reconfiguration
+set vrf name overlay protocols bgp peer-group pods remote-as '65100'
+
+
+# Commit, save and exit from subshell
+
+commit
+save
+exit
+
+

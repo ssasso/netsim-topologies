@@ -1,0 +1,43 @@
+create_vrf () {
+    vrf=$1
+    table=$2
+
+    ip link add ${vrf} type vrf table ${table}
+    ip link set dev ${vrf} up
+    ip route add table ${table} unreachable default metric 4278198272
+    ip rule add iif ${vrf} table ${table}
+    ip rule add oif ${vrf} table ${table}
+
+}
+
+
+create_dummy () {
+    name=$1
+    ip link add ${name} type dummy
+}
+
+
+configure_interface_vrf () {
+    iface=$1
+    addr=$2
+    vrf=$3
+
+    ip link set ${iface} master ${vrf}
+    ip link set up dev ${iface}
+
+    ip addr add ${addr} dev ${iface}
+}
+
+create_mgre () {
+    iface=$1
+    key=$2
+    local_ip=$3
+
+    ip tunnel add ${iface} mode gre key ${key} local ${local_ip}
+}
+
+ip_from_iface () {
+    iface=$1
+    ip addr show ${iface} | grep "inet\b" | awk '{print $2}' | cut -d/ -f1
+}
+

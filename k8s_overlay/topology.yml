@@ -1,0 +1,45 @@
+---
+defaults:
+  device: vyos
+
+nodes:
+  hub:
+    id: 1
+    config: [ add/hub.j2 ]
+  spoke1:
+    id: 11
+    config: [ add/spoke1.j2 ]
+  spoke2:
+    id: 12
+    config: [ add/spoke2.j2 ]
+  kilo1:
+    id: 21
+    device: linux
+    config: [ add/kilo1.j2 ]
+    cpu: 4
+    memory: 8192
+    docker_shell: bash
+  kilo2:
+    id: 22
+    device: linux
+    config: [ add/kilo2.j2 ]
+    cpu: 4
+    memory: 8192
+    docker_shell: bash
+  kilo3:
+    id: 23
+    device: linux
+    config: [ add/kilo3.j2 ]
+    cpu: 4
+    memory: 8192
+    docker_shell: bash
+
+links:
+- hub:
+  spoke1:
+  spoke2:
+  kilo1:
+  kilo2:
+  kilo3:
+  prefix.ipv4: 10.200.0.0/24
+

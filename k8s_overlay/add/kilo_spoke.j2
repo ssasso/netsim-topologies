@@ -1,0 +1,42 @@
+vni=100
+
+brctl addbr br${vni}
+##brctl addif br${vni} vxlan${vni}
+brctl stp br${vni} off
+ip link set up dev br${vni}
+
+ip link add vxlan${vni} type vxlan id ${vni} dstport 4789 nolearning local 10.200.0.{{ local_id }}
+
+brctl addif br${vni} vxlan${vni}
+ip link set up dev vxlan${vni}
+
+ip addr add dev br${vni} 10.150.150.{{ local_id }}/24
+
+cat <<EOT > /etc/frr/frr.conf
+
+log syslog informational
+
+router bgp 65000
+  bgp router-id 10.200.0.{{ local_id }}
+  no bgp default ipv4-unicast
+  no bgp ebgp-requires-policy
+  no bgp network import-check
+  neighbor fabric peer-group
+  neighbor fabric remote-as 65000
+  neighbor fabric capability extended-nexthop
+  ! BGP sessions with route reflectors
+  neighbor 10.200.0.1 peer-group fabric
+  !
+  address-family l2vpn evpn
+   neighbor fabric next-hop-self
+   neighbor fabric activate
+   advertise-all-vni
+   advertise-svi-ip
+  exit-address-family
+  !
+!
+
+EOT
+
+service frr restart
+

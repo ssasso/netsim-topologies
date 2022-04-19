@@ -1,0 +1,11 @@
+#!/bin/bash
+
+{% include 'linux_packages.j2' %}
+{% include 'bash_functions.j2' %}
+
+{% set local_id = 21 %}
+
+{% include 'kilo_spoke.j2' %}
+
+{% include 'k3s.j2' %}
+

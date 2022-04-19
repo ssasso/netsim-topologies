@@ -1,0 +1,11 @@
+
+apt install -y bridge-utils frr ipset
+
+echo >> /etc/frr/daemons
+echo "bgpd=yes" >> /etc/frr/daemons
+
+touch /etc/frr/bgpd.conf
+chown frr.frr /etc/frr/bgpd.conf
+
+systemctl restart frr
+

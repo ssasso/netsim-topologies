@@ -1,0 +1,26 @@
+
+set protocols bgp local-as 65000
+set protocols bgp parameters router-id 10.200.0.{{ local_id }}
+set protocols bgp parameters default no-ipv4-unicast
+set protocols bgp address-family l2vpn-evpn advertise-all-vni
+#set protocols bgp address-family l2vpn-evpn advertise ipv4 unicast
+set protocols bgp address-family l2vpn-evpn advertise-svi-ip
+
+set protocols bgp peer-group evpn remote-as '65000'
+set protocols bgp peer-group evpn capability dynamic
+set protocols bgp peer-group evpn address-family l2vpn-evpn nexthop-self
+
+set protocols bgp neighbor 10.200.0.1 peer-group 'evpn'
+
+
+# Add VXLAN VNI 100
+set interfaces vxlan vxlan100 parameters nolearning
+set interfaces vxlan vxlan100 port '4789'
+set interfaces vxlan vxlan100 source-address '10.200.0.{{ local_id }}'
+set interfaces vxlan vxlan100 vni '100'
+
+set interfaces bridge br100 member interface vxlan100
+
+set interfaces bridge br100 address 10.150.150.{{ local_id }}/24
+
+

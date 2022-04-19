@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: birds
+spec:
+  selector:
+    matchLabels:
+      app: birds
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: birds
+      annotations:
+        k8s.v1.cni.cncf.io/networks: cni100
+    spec:
+      containers:
+      - name: bird
+        imagePullPolicy: Always
+        image: ssasso/dummybird
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN", "NET_RAW"]
+      - name: weby
+        imagePullPolicy: Always
+        image: ssasso/simple:2
+
