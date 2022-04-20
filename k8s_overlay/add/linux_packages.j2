@@ -9,3 +9,8 @@ chown frr.frr /etc/frr/bgpd.conf
 
 systemctl restart frr
 
+# Install GO
+wget -q -c https://go.dev/dl/go1.18.1.linux-amd64.tar.gz -O /root/go1.18.1.linux-amd64.tar.gz
+rm -rf /usr/local/go && tar -C /usr/local -xzf /root/go1.18.1.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+

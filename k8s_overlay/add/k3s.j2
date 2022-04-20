@@ -12,6 +12,8 @@ EOF
 PRIMARYID=21
 BASENET=10.200.0.
 
+export K3S_RESOLV_CONF="/run/systemd/resolve/resolv.conf"
+
 if [ {{ local_id }} -eq $PRIMARYID ]; then
 	export INSTALL_K3S_EXEC="server --cluster-init"
 else
@@ -23,4 +25,17 @@ curl -sfL https://get.k3s.io | bash -s - | tee -a /tmp/k3s.install.txt
 ln -s /var/lib/rancher/k3s/agent/etc/cni/ /etc/cni
 mkdir -p /opt/cni
 ln -s /var/lib/rancher/k3s/data/current/bin/ /opt/cni/bin
+
+# Additional CNI Plugins
+cd /root
+git clone https://github.com/containernetworking/plugins.git
+cd plugins
+bash build_linux.sh
+
+for i in bin/*; do
+	of="/var/lib/rancher/k3s/data/current/$i"
+	[ ! -f $of ] && cp $i /var/lib/rancher/k3s/data/current/$i
+done
+
+cd /root
 

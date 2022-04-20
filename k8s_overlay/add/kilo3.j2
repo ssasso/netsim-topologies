@@ -9,3 +9,14 @@
 
 {% include 'k3s.j2' %}
 
+# Fixes for CoreDNS resolver:
+## need to do it at last.
+
+sleep 10
+
+kubectl get cm -n kube-system coredns -o yaml | sed "s|forward . /etc/resolv.conf|forward . 192.168.121.1|g" | kubectl apply -f -
+sleep 5
+kubectl rollout restart -n kube-system deployment/coredns
+sleep 5
+
+

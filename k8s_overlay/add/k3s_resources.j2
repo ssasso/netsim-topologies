@@ -5,7 +5,7 @@
 #  we will use: https://github.com/k8snetworkplumbingwg/whereabouts
 #
 
-cat <<EOF >/tmp/cni_br100.yml
+cat <<EOF >/root/cni_100.yml
 ---
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
@@ -31,6 +31,41 @@ spec:
       "gateway": "10.150.150.1"
     }
   }'
+EOF
+
+cat <<EOF >/root/cni_100__static_vrf.yml
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: cni2
+spec:
+  config: '{
+    "cniVersion": "0.3.1",
+    "name": "cni2",
+    "plugins": [
+      {
+        "type": "bridge",
+        "bridge": "br100",
+        "ipam": {
+              "type": "static",
+              "routes": [
+                { "dst": "10.150.0.0/16" }
+              ],
+              "gateway": "10.150.150.1"
+            }
+      },
+      {
+        "type": "vrf",
+        "vrfname": "blue"
+      }
+    ],
+    "isDefaultGateway": false,
+    "forceAddress": false,
+    "ipMasq": false,
+    "hairpinMode": false
+  }'
+
 EOF
 
 cat <<EOF >/root/example_pod.yml
@@ -119,5 +154,5 @@ kubectl apply \
     -f doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml \
     -f doc/crds/ip-reconciler-job.yaml
 sleep 10
-kubectl apply -f /tmp/cni_br100.yml
+kubectl apply -f /root/cni_100.yml
 
