@@ -1,0 +1,64 @@
+{#
+# Handle VLT creation
+#}
+{% if vlt.domain is defined %}
+
+vlt-domain {{ vlt.domain }}
+
+{% for l in interfaces|default([]) %}
+{% if l.vlti is defined and l.vlti %}
+ discovery-interface {{ l.ifname }}
+{% endif %}
+{% endfor %}
+
+ peer-routing
+ vlt-mac 06:00:00:00:{{ '%02d' % vlt.domain }}:04
+
+{% endif %}
+
+ip virtual-router mac-address 00:00:01:00:00:01
+
+{#
+# Handle LAG + MCLAG
+#}
+
+
+{% for l in interfaces|default([]) %}
+
+{% if l.channelgroup is defined %}
+
+interface port-channel {{ l.channelgroup }}
+{% if l.mlagid is defined %}
+  vlt-port-channel {{ l.mlagid }}
+{% endif %}
+
+interface {{ l.ifname }}
+  
+  channel-group {{ l.channelgroup }} mode active
+
+{% endif %}
+
+{% endfor %}
+
+
+{# virtual-network & VLANS #}
+virtual-network 21
+  exit
+virtual-network 22
+  exit
+virtual-network 24
+  exit
+
+interface vlan 21
+  virtual-network 21
+  exit
+
+interface vlan 22
+  virtual-network 22
+  exit
+
+interface vlan 24
+  virtual-network 24
+  exit
+
+

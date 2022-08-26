@@ -1,0 +1,50 @@
+---
+defaults:
+  device: csr
+
+vrfs:
+  blue:
+
+module: [ vrf,ospf,bgp,mpls ]
+plugin: [ ebgp_utils ]
+bgp.as: 65000
+
+nodes:
+  pe1:
+    mpls:
+      vpn: true
+      ldp: true
+    id: 11
+  pe2:
+     mpls:
+       vpn: true
+       ldp: true
+     id: 12
+  edge1:
+    module: [ bgp ]
+    bgp.as: 65101
+    id: 21
+  edge2:
+    module: [ bgp ]
+    bgp.as: 65102
+    id: 22
+
+links:
+- pe1:
+  pe2:
+- pe1:
+    vrf: blue
+    bgp.as_override: true
+  edge1:
+    bgp.as_override: true
+  bgp.password: Banana123
+- pe2:
+    vrf: blue
+    bgp.allowas_in: 2
+  edge2:
+    bgp.allowas_in: 2
+- edge1:
+  prefix.ipv4: 100.64.1.0/24
+- edge2:
+  prefix.ipv4: 100.64.2.0/24
+

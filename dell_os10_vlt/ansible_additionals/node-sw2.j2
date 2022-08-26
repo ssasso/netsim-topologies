@@ -1,0 +1,28 @@
+
+vrrp version 3
+
+interface virtual-network 24
+  no shut
+  ip address 10.24.24.2/24
+
+interface virtual-network 21
+  no shut
+  ip address 10.20.21.2/24
+  ip virtual-router address 10.20.21.254
+
+interface virtual-network 22
+  no shut
+  ip address 10.20.22.2/24
+  ip virtual-router address 10.20.22.254
+
+interface port-channel 1
+  switchport mode trunk
+  switchport trunk allowed vlan 21,24
+  no switchport access vlan
+
+interface port-channel 2
+  switchport mode trunk
+  switchport trunk allowed vlan 22,24
+  no switchport access vlan
+
+

@@ -1,0 +1,23 @@
+---
+defaults:
+  device: vyos
+  bgp:
+    as: 65000
+  interfaces.mtu: 8192
+
+module: [ isis, bgp, bfd ]
+bgp:
+  as: 65123
+isis:
+  bfd: True
+
+nodes: [ y1, y2 ]
+links:
+- y1:
+  y2:
+- y1:
+  y2:
+  isis:
+    metric: 66
+
+

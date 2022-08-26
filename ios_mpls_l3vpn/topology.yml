@@ -1,0 +1,48 @@
+---
+defaults:
+  device: csr
+
+vrfs:
+  blue:
+
+module: [ vrf,ospf,bgp,mpls ]
+bgp.as: 65000
+
+nodes:
+  pe1:
+    mpls:
+      vpn: true
+      ldp: true
+  pe2:
+     mpls:
+       vpn: true
+       ldp: true
+  cb1:
+    module: [ bgp ]
+    bgp.as: 65101
+  cb2:
+    module: [ bgp ]
+    bgp.as: 65102
+  cb3:
+    module: [ bgp ]
+    bgp.as: 65103
+  cb4:
+    module: [ bgp ]
+    bgp.as: 65104
+
+links:
+- pe1:
+  pe2:
+- pe1: { vrf: blue }
+  cb1:
+- pe2: { vrf: blue }
+  cb1:
+- pe1: { vrf: blue }
+  cb2:
+- pe2: { vrf: blue }
+  cb2:
+- pe1: { vrf: blue }
+  cb3:
+- pe2: { vrf: blue }
+  cb4:
+

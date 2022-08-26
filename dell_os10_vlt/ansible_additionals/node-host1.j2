@@ -1,0 +1,26 @@
+#!/bin/vbash
+source /opt/vyatta/etc/functions/script-template
+
+if [ "$(id -g -n)" != 'vyattacfg' ] ; then
+    exec sg vyattacfg -c "/bin/vbash $(readlink -f $0) $@"
+fi
+
+# Configuration items start here
+
+configure
+
+
+set interfaces bonding bond0 mode 802.3ad
+set interfaces bonding bond0 member interface eth1
+set interfaces bonding bond0 member interface eth2
+set interfaces bonding bond0 vif 24 address 10.24.24.21/24
+set interfaces bonding bond0 vif 21 address 10.20.21.20/24
+set protocols static route 10.20.0.0/16 next-hop 10.20.21.254
+
+
+# Commit, save and exit from subshell
+
+commit
+save
+exit
+

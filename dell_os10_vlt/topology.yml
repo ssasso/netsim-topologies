@@ -1,0 +1,48 @@
+---
+defaults:
+  device: dellos10
+
+defaults.devices.vyos.libvirt.node.nic_model: e1000
+
+nodes:
+  sw1:
+    id: 1
+    config: [ ansible_additionals/lagconfig.j2, ansible_additionals/node-sw1.j2 ]
+    vlt:
+      domain: 2
+  sw2:
+    id: 2
+    config: [ ansible_additionals/lagconfig.j2, ansible_additionals/node-sw2.j2 ]
+    vlt:
+      domain: 2
+  host1:
+    id: 11
+    config: [ ansible_additionals/node-host1.j2 ]
+    device: vyos
+  host2:
+    id: 12
+    config: [ ansible_additionals/node-host2.j2 ]
+    device: vyos
+
+links:
+- sw1: { vlti: True }
+  sw2: { vlti: True }
+  prefix: false
+#- sw1: { vlti: True }
+#sw2: { vlti: True }
+#prefix: false
+- sw1: { channelgroup: 1, mlagid: 1}
+  host1: { channelgroup: 1 }
+  prefix: false
+- sw2: { channelgroup: 1, mlagid: 1}
+  host1: { channelgroup: 1 }
+  prefix: false
+- sw1: { channelgroup: 2, mlagid: 2}
+  host2: { channelgroup: 2 }
+  prefix: false
+- sw2: { channelgroup: 2, mlagid: 2}
+  host2: { channelgroup: 2 }
+  prefix: false
+
+
+
