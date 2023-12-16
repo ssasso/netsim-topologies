@@ -13,7 +13,8 @@ groups:
       bgp:
         as: 65000
         advertise_loopback: false
-        activate: {}
+        activate:
+          ipv4: []
   spine:
     members: [ s1, s2 ]
     module: [ ospf, bgp, evpn ]
