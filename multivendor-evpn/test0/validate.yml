@@ -1,0 +1,15 @@
+ping:
+  description: Pinging R2 loopback from R1
+  nodes: [ r1 ]
+  devices: [ dellos10 ]
+  exec: ping -c 10 10.255.0.2 -I 10.255.0.1 -A
+  valid: |
+    "64 bytes" in stdout
+
+prefix1:
+  description: Check for BGP prefix 100.64.1.0/24 on R2 routing table
+  nodes: [ r2 ]
+  devices: [ arubacx ]
+  exec: "show ip route"
+  valid: |
+    "100.64.1.0/24" in stdout
