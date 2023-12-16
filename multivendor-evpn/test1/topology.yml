@@ -8,7 +8,7 @@ groups:
     device: linux
   leaf:
     members: [ l1, l2 ]
-    module: [ vlan, vrf, vxlan, ospf, bgp, evpn ]
+    module: [ vlan, vrf, vxlan, ospf, bgp, evpn, gateway ]
     node_data:
       bgp:
         as: 65000
@@ -33,11 +33,13 @@ vrfs:
 vlans:
   red:
     vrf: tenant
+    gateway: True
   blue:
     vrf: tenant
+    gateway: True
   green:
     vrf: tenant
-
+    gateway: True
 
 nodes:
   s1:
