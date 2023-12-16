@@ -1,0 +1,114 @@
+---
+
+defaults.sources.extra: [ ../netlab-defaults.yml ]
+
+groups:
+  hosts:
+    members: [ h1, h2, h3, h4 ]
+    device: linux
+  leaf:
+    members: [ l1, l2 ]
+    module: [ vlan, vrf, vxlan, ospf, bgp, evpn ]
+    node_data:
+      bgp:
+        as: 65000
+        advertise_loopback: false
+        activate: {}
+  spine:
+    members: [ s1, s2 ]
+    module: [ ospf, bgp, evpn ]
+    node_data:
+      bgp:
+        rr: True
+        as: 65000
+        advertise_loopback: false
+        activate:
+          ipv4: []
+
+vrfs:
+  tenant:
+    ospf: False
+    evpn.transit_vni: True
+
+vlans:
+  red:
+    vrf: tenant
+  blue:
+    vrf: tenant
+  green:
+    vrf: tenant
+
+
+nodes:
+  s1:
+    device: dellos10
+    id: 1
+  s2:
+    device: dellos10
+    id: 2
+  l1:
+    device: dellos10
+    id: 11
+  l2:
+    device: arubacx
+    id: 12
+  h1:
+    id: 141
+  h2:
+    id: 142
+  h3:
+    id: 143
+  h4:
+    id: 144
+
+
+links:
+#- pe2:
+#  pe1:
+#  pool: l2only
+#  name: Unused link
+
+# Increased MTU to support VXLAN. Note: need to set a different value for Dell and Aruba
+- s1:
+  l1:
+  mtu: 1632
+  ospf.area: 0
+
+- s1:
+    mtu: 1632
+  l2:
+    mtu: 1600
+  ospf.area: 0
+
+- s2:
+  l1:
+  mtu: 1632
+  ospf.area: 0
+
+- s2:
+    mtu: 1632
+  l2:
+    mtu: 1600
+  ospf.area: 0
+
+
+- h1:
+  l1:
+    vlan.access: red
+- h2:
+  l2:
+    vlan.access: red
+- h3:
+  l1:
+    vlan.access: blue
+- h4:
+  l2:
+    vlan.access: green
+
+# Since netlab creates an iBGP session between the two RR (the spines),
+# let's create this direct link to avoid this session to go through leaf links.
+# In real world, spines are not connected to each-other, and an iBGP session between them shall not exist.
+- s1:
+  s2:
+  ospf.area: 0
+  mtu: 1632
