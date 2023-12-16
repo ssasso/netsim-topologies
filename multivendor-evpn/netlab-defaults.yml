@@ -9,9 +9,9 @@ addressing:
     ipv4: 10.100.0.0/24
     prefix: 32
 
-defaults.vxlan.start_vni: 20000
+vxlan.start_vni: 20000
 
-defaults.devices.dellos10:
+devices.dellos10:
   clab:
     image: vrnetlab/vr-ftosv:10.5.6.0
     mtu: 1532
