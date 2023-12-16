@@ -10,6 +10,7 @@ addressing:
     prefix: 32
 
 vxlan.start_vni: 20000
+evpn.start_transit_vni: 10000
 
 devices.dellos10:
   clab:
