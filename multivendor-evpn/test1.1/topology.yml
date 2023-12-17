@@ -14,7 +14,7 @@ groups:
         as: 65000
         advertise_loopback: false
         activate:
-          ipv4: []
+          ipv4: [ ebgp ]
   spine:
     members: [ s1, s2 ]
     module: [ ospf, bgp, evpn ]
@@ -25,14 +25,6 @@ groups:
         advertise_loopback: false
         activate:
           ipv4: []
-  routers:
-    members: [ rtr ]
-    module: [ bgp ]
-    node_data:
-      bgp:
-        as: 65222
-        advertise_loopback: True
-
 
 vrfs:
   tenant:
@@ -76,6 +68,10 @@ nodes:
   rtr:
     device: vyos
     id: 130
+    module: [ bgp ]
+    bgp:
+      as: 65222
+      advertise_loopback: True
 
 
 links:
@@ -93,7 +89,7 @@ links:
 - s1:
     mtu: 1632
   l2:
-    mtu: 1600
+#    mtu: 1600
   ospf.area: 0
 
 - s2:
@@ -104,7 +100,7 @@ links:
 - s2:
     mtu: 1632
   l2:
-    mtu: 1600
+#    mtu: 1600
   ospf.area: 0
 
 
@@ -132,3 +128,6 @@ links:
   s2:
   ospf.area: 0
   mtu: 1632
+
+_include: [ validate.yml ]
+
