@@ -74,24 +74,22 @@ links:
 # Increased MTU to support VXLAN. Note: need to set a different value for Dell and Aruba
 - s1:
   l1:
-  mtu: 1632
+  mtu: 1600
   ospf.area: 0
 
 - s1:
-    mtu: 1632
   l2:
-    mtu: 1600
+  mtu: 1600
   ospf.area: 0
 
 - s2:
   l1:
-  mtu: 1632
+  mtu: 1600
   ospf.area: 0
 
 - s2:
-    mtu: 1632
   l2:
-    mtu: 1600
+  mtu: 1600
   ospf.area: 0
 
 
@@ -114,4 +112,4 @@ links:
 - s1:
   s2:
   ospf.area: 0
-  mtu: 1632
+  mtu: 1600
