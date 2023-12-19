@@ -1,0 +1,80 @@
+provider: clab
+
+addressing:
+  loopback:
+    ipv4: 10.100.0.0/24
+    prefix: 32
+  router_id:
+    ipv4: 10.100.0.0/24
+    prefix: 32
+
+defaults.device: arubacx
+
+defaults.devices.dellos10:
+  clab:
+    image: vrnetlab/vr-ftosv:10.5.6.0
+  group_vars:
+    ansible_user: admin
+    ansible_ssh_pass: admin
+
+# Custom plugins
+plugin: [ lag_plugin ]
+
+module: [ vlan, vrf ]
+
+vrfs:
+  tenant:
+
+vlans:
+  red:
+    vrf: tenant
+  black:
+    vrf: tenant
+  blue:
+    vrf: tenant
+  green:
+    vrf: tenant
+
+groups:
+  lag_devices:
+    members: [ sw1, sw2 ]
+    config: [ extra-config-lag ]
+
+
+nodes:
+  sw1:
+    device: arubacx
+  sw2:
+    device: dellos10
+
+links:
+# LAG 1, testing vlan access
+- sw1:
+    lag.id: 1
+    vlan.access: red
+  sw2:
+    lag.id: 1
+    vlan.access: red
+  prefix: false
+- sw1:
+    lag.id: 1
+  sw2:
+    lag.id: 1
+  prefix: false
+# LAG 2, testing vlan trunk
+- sw1:
+    lag.id: 2
+    vlan.trunk: [ black, green, blue ]
+    vlan.native: black
+  sw2:
+    lag.id: 2
+    vlan.trunk: [ black, green, blue ]
+    vlan.native: black
+  prefix: false
+- sw1:
+    lag.id: 2
+  sw2:
+    lag.id: 2
+  prefix: false
+
+
