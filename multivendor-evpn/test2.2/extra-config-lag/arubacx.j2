@@ -1,0 +1,35 @@
+{% for lag in lags|default([]) %}
+
+{%   if lag.is_mclag|default(false) %}
+interface lag {{ lag.lag_id }} multi-chassis
+{%   else %}
+interface lag {{ lag.lag_id }}
+{%   endif %}
+  shutdown
+  lacp mode active
+
+{%   for lagiface in lag.iflist|default([]) %}
+interface {{ lagiface }}
+  description LAG_{{ lag.lag_id }}
+  lag {{ lag.lag_id }}
+{%   endfor %}
+
+{%   if lag.ifdata.vlan is defined %}
+interface lag {{ lag.lag_id }}
+  no routing
+
+{%     if lag.ifdata.vlan.trunk_id is defined %}
+  vlan trunk allow {{ lag.ifdata.vlan.trunk_id|sort|join(",") }}
+{%       if lag.ifdata.vlan.native is defined %}
+  vlan trunk native {{ lag.ifdata.vlan.access_id }}
+{%       endif %}
+{%     elif lag.ifdata.vlan.access_id is defined %}
+  vlan access {{ lag.ifdata.vlan.access_id }}
+{%     endif %}
+
+  no shutdown
+
+{%   endif %}
+
+{% endfor %}
+

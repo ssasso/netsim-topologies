@@ -1,0 +1,14 @@
+{% if mclagcluster.id is defined %}
+
+vlt-domain {{ mclagcluster.id }}
+
+  peer-routing
+  vlt-mac 06:00:00:00:{{ '%02d' % mclagcluster.id }}:04
+
+{%   for l in interfaces|default([]) %}
+{%     if l.isl is defined and l.isl %}
+  discovery-interface {{ l.ifname }}
+{%     endif %}
+{%   endfor %}
+
+{% endif %}

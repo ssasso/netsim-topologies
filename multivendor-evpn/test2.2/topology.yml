@@ -1,0 +1,116 @@
+provider: clab
+
+addressing:
+  loopback:
+    ipv4: 10.100.0.0/24
+    prefix: 32
+  router_id:
+    ipv4: 10.100.0.0/24
+    prefix: 32
+
+defaults.devices.dellos10:
+  clab:
+    image: vrnetlab/vr-ftosv:10.5.6.0
+  group_vars:
+    ansible_user: admin
+    ansible_ssh_pass: admin
+
+# Custom plugins
+plugin: [ lag_plugin ]
+
+module: [ vlan, vrf, gateway ]
+
+vrfs:
+  tenant:
+
+vlans:
+  red:
+    vrf: tenant
+  black:
+    vrf: tenant
+  blue:
+    vrf: tenant
+  green:
+    vrf: tenant
+
+groups:
+  mclag_aruba:
+    members: [ sw1, sw2 ]
+    device: arubacx
+    config: [ extra-config-mclagcluster, extra-config-lag ]
+    node_data:
+      mclagcluster.id: 1
+  mclag_dell:
+    members: [ sw3, sw4 ]
+    device: dellos10
+    config: [ extra-config-mclagcluster, extra-config-lag ]
+    node_data:
+      mclagcluster.id: 2
+
+nodes:
+  sw1:
+    mclagcluster.role: primary
+  sw2:
+    mclagcluster.role: secondary
+  sw3:
+  sw4:
+
+links:
+# LAG 1, testing vlan access
+- sw1:
+    lag.id: 1
+    lag.mclag: true
+    vlan.access: red
+  sw3:
+    lag.id: 1
+    lag.mclag: true
+    vlan.access: red
+  prefix: false
+  gateway: true
+- sw2:
+    lag.id: 1
+    lag.mclag: true
+    vlan.access: red
+  sw4:
+    lag.id: 1
+    lag.mclag: true
+    vlan.access: red
+  prefix: false
+  gateway: true
+# LAG 2, testing vlan trunk
+- sw1:
+    lag.id: 2
+    lag.mclag: true
+    vlan.trunk: [ black, green, blue ]
+    vlan.native: black
+  sw3:
+    lag.id: 2
+    lag.mclag: true
+    vlan.trunk: [ black, green, blue ]
+    vlan.native: black
+  prefix: false
+  gateway: true
+- sw2:
+    lag.id: 2
+    lag.mclag: true
+    vlan.trunk: [ black, green, blue ]
+    vlan.native: black
+  sw4:
+    lag.id: 2
+    lag.mclag: true
+    vlan.trunk: [ black, green, blue ]
+    vlan.native: black
+  prefix: false
+  gateway: true
+
+# ISL Links
+- sw1:
+  sw2:
+  prefix: false
+  isl: true
+
+- sw3:
+  sw4:
+  prefix: false
+  isl: true
+

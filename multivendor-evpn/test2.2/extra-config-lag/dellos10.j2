@@ -1,0 +1,42 @@
+{% for lag in lags|default([]) %}
+
+interface port-channel {{ lag.lag_id }}
+  shutdown
+
+{%   if lag.is_mclag|default(false) %}
+  vlt-port-channel {{ lag.lag_id }}
+{%   endif %}
+
+{%   for lagiface in lag.iflist|default([]) %}
+interface {{ lagiface }}
+  description LAG_{{ lag.lag_id }}
+  channel-group {{ lag.lag_id }} mode active
+{%   endfor %}
+
+
+{%   if lag.ifdata.vlan is defined %}
+interface port-channel {{ lag.lag_id }}
+
+{%     if lag.ifdata.vlan.access_id is defined %}
+  switchport mode access
+  switchport access vlan {{ lag.ifdata.vlan.access_id }}
+{%     endif %}
+
+{%     if lag.ifdata.vlan.trunk_id is defined %}
+  switchport mode trunk
+{%       set vid_list = [] %}
+{%       for vid in lag.ifdata.vlan.trunk_id if vid != lag.ifdata.vlan.access_id|default(0) %}
+{{         vid_list.append(vid) }}
+{%       endfor %}
+  switchport trunk allowed vlan {{ vid_list|join(",") }}
+{%       if lag.ifdata.vlan.native is defined %}
+  switchport access vlan {{ lag.ifdata.vlan.access_id }}
+{%       endif %}
+{%   endif %}
+
+  no shutdown
+
+{%   endif %}
+
+{% endfor %}
+

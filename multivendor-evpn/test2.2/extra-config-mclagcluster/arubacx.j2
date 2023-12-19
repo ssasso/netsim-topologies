@@ -1,0 +1,32 @@
+{% if mclagcluster.id is defined and mclagcluster.role is defined and mclagcluster.role in ['primary', 'secondary'] %}
+
+interface lag 255
+  no shutdown
+  no routing
+  vlan trunk native 1
+  vlan trunk allowed all
+  lacp mode active
+  description ISL
+
+{%   for l in interfaces|default([]) %}
+{%     if l.isl is defined and l.isl %}
+interface {{ l.ifname }}
+  description ISL
+  lag 255
+  no shutdown
+{%     endif %}
+{%   endfor %}
+
+vsx
+  system-mac 06:00:00:00:{{ '%02d' % mclagcluster.id }}:04
+  inter-switch-link lag 255
+  role {{ mclagcluster.role }}
+
+{# Additionally, all VLANs without an active-gateway configuration can be configured with vsx active-forwarding #}
+
+{%   for intf in interfaces if intf.gateway is not defined and intf.type|default('') == 'svi' %}
+interface {{ intf.ifname }}
+  vsx active-forwarding
+{%   endfor %}
+
+{% endif %}
