@@ -1,0 +1,63 @@
+{% if mclagcluster.id is defined and mclagcluster.role is defined and mclagcluster.role in ['primary', 'secondary'] %}
+
+interface lag 255
+  no shutdown
+  no routing
+  vlan trunk native 1
+  vlan trunk allowed all
+  lacp mode active
+  description ISL
+
+{%   for l in interfaces|default([]) %}
+{%     if l.isl is defined and l.isl %}
+interface {{ l.ifname }}
+  description ISL
+  mtu 9198
+  lag 255
+  no shutdown
+{%     endif %}
+{%   endfor %}
+
+vsx
+  system-mac 06:00:00:00:{{ '%02d' % mclagcluster.id }}:04
+  inter-switch-link lag 255
+  role {{ mclagcluster.role }}
+
+{# Additionally, all VLANs without an active-gateway configuration can be configured with vsx active-forwarding #}
+
+{%   for intf in interfaces if intf.gateway is not defined and intf.type|default('') == 'svi' %}
+interface {{ intf.ifname }}
+  vsx active-forwarding
+{%   endfor %}
+
+{%   if mclagcluster.transit_vlan is defined and mclagcluster.transit_ip is defined %}
+vlan {{ mclagcluster.transit_vlan }}
+interface vlan {{ mclagcluster.transit_vlan }}
+  no shutdown
+  description MCLAG_TRANSIT_VLAN
+  ip address {{ mclagcluster.transit_ip }}
+{%     if ospf is defined %}
+{%       set pid = ospf.process|default(1) %}
+  ip ospf {{ pid }} area {{ ospf.area }}
+  ip ospf network point-to-point
+  ip ospf cost 5
+{%     endif %}
+{%     if mclagcluster.transit_mtu is defined %}
+  ip mtu {{ mclagcluster.transit_mtu }}
+{%     endif %}
+
+{%   endif %}
+
+{%   if anycast_vtep is defined and ospf is defined %}
+{%       set pid = ospf.process|default(1) %}
+interface loopback {{ anycast_vtep.loopback }}
+  description ANYCAST_VTEP
+  ip address {{ anycast_vtep.address }}
+  ip ospf {{ pid }} area {{ ospf.area }}
+
+interface vxlan 1
+  source ip {{ anycast_vtep.address|ipaddr('address') }}
+  no shutdown
+{%   endif %}
+
+{% endif %}

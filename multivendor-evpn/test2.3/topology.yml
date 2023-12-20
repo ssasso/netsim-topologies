@@ -1,0 +1,134 @@
+provider: clab
+
+addressing:
+  loopback:
+    ipv4: 10.100.0.0/24
+    prefix: 32
+  router_id:
+    ipv4: 10.100.0.0/24
+    prefix: 32
+  transit:
+    ipv4: 10.133.0.0/24
+    prefix: 30
+  anycast_vtep:
+    ipv4: 10.100.20.0/24
+    prefix: 32
+
+defaults.devices.dellos10:
+  clab:
+    image: vrnetlab/vr-ftosv:10.5.6.0
+  group_vars:
+    ansible_user: admin
+    ansible_ssh_pass: admin
+
+# Custom plugins
+plugin: [ lag_plugin, mclagcluster_plugin ]
+
+module: [ ospf, vlan, vrf, gateway, vxlan ]
+
+vrfs:
+  tenant:
+    ospf: false
+
+vlans:
+  red:
+    vrf: tenant
+
+groups:
+  mclag_aruba:
+    members: [ sw1, sw2 ]
+    device: arubacx
+    config: [ extra-config-mclagcluster, extra-config-lag ]
+    node_data:
+      mclagcluster.id: 1
+      mclagcluster.transit_vlan: 4000
+      mclagcluster.transit_mtu: 1600
+  mclag_dell:
+    members: [ sw3, sw4 ]
+    device: dellos10
+    config: [ extra-config-mclagcluster, extra-config-lag ]
+    node_data:
+      mclagcluster.id: 2
+      mclagcluster.transit_vlan: 4000
+      mclagcluster.transit_mtu: 1600
+  other_lag_devs:
+    members: [ cl1, cl2 ]
+    config: [ extra-config-lag ]
+
+nodes:
+  aggr:
+    device: dellos10
+    module: [ ospf ]
+  sw1:
+    mclagcluster.role: primary
+  sw2:
+    mclagcluster.role: secondary
+  sw3:
+  sw4:
+  cl1:
+    device: arubacx
+  cl2:
+    device: dellos10
+
+links:
+- aggr:
+  sw1:
+  ospf.cost: 10
+- aggr:
+  sw2:
+  ospf.cost: 10
+- aggr:
+  sw3:
+  ospf.cost: 10
+- aggr:
+  sw4:
+  ospf.cost: 10
+
+# ISL Links
+- sw1:
+  sw2:
+  prefix: false
+  isl: true
+
+- sw3:
+  sw4:
+  prefix: false
+  isl: true
+
+# Links to Client Switches
+# SW{1,2} to CL1
+- sw1:
+    lag.id: 1
+    lag.mclag: true
+    vlan.access: red
+  cl1:
+    lag.id: 1
+  prefix: false
+  gateway: true
+- sw2:
+    lag.id: 1
+    lag.mclag: true
+    vlan.access: red
+  cl1:
+    lag.id: 1
+  prefix: false
+  gateway: true
+# SW{3,4} to CL2
+- sw3:
+    lag.id: 1
+    lag.mclag: true
+    vlan.access: red
+  cl2:
+    lag.id: 1
+  prefix: false
+  gateway: true
+- sw4:
+    lag.id: 1
+    lag.mclag: true
+    vlan.access: red
+  cl2:
+    lag.id: 1
+  prefix: false
+  gateway: true
+
+
