@@ -67,8 +67,10 @@ nodes:
   sw4:
   cl1:
     device: arubacx
+    module: [vlan]
   cl2:
     device: dellos10
+    module: [vlan]
 
 links:
 - aggr:
@@ -100,35 +102,34 @@ links:
 - sw1:
     lag.id: 1
     lag.mclag: true
-    vlan.access: red
   cl1:
     lag.id: 1
+  vlan.access: red
   prefix: false
   gateway: true
 - sw2:
     lag.id: 1
     lag.mclag: true
-    vlan.access: red
   cl1:
     lag.id: 1
   prefix: false
   gateway: true
+  vlan.access: red
 # SW{3,4} to CL2
 - sw3:
     lag.id: 1
     lag.mclag: true
-    vlan.access: red
   cl2:
     lag.id: 1
   prefix: false
   gateway: true
+  vlan.access: red
 - sw4:
     lag.id: 1
     lag.mclag: true
-    vlan.access: red
   cl2:
     lag.id: 1
   prefix: false
   gateway: true
-
+  vlan.access: red
 
