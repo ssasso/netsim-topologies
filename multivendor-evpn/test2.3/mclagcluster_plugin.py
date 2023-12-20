@@ -57,14 +57,14 @@ def post_transform(topology: Box) -> None:
                             'address': str(vtep_a),
                             'plain_addr': str(vtep_a.network),
                             }
-    print('VTEP REPLCS')
-    print(vteps_replacement)
     for n, ndata in topology.nodes.items():
         myself = ''
         if 'anycast_vtep' in ndata:
             myself = ndata.anycast_vtep.plain_addr
         if 'vxlan' in ndata and ndata.vxlan.get('flooding', '') == 'static':
             ndata.vxlan.vtep_list = transform_vtep_list(ndata.vxlan.get('vtep_list', []), vteps_replacement, myself)
-            ##### TODO: VTEP FLOOD LIST IS PER VNI!!!
+            for vl, vdata in ndata.get('vlans', {}).items():
+                if 'vtep_list' in vdata:
+                    vdata.vtep_list = transform_vtep_list(vdata.vtep_list, vteps_replacement, myself)
     return
 
