@@ -1,0 +1,43 @@
+{% if mclagcluster.id is defined %}
+
+vlt-domain {{ mclagcluster.id }}
+
+  peer-routing
+  vlt-mac 06:00:00:00:{{ '%02d' % mclagcluster.id }}:04
+
+{%   for l in interfaces|default([]) %}
+{%     if l.isl is defined and l.isl %}
+  discovery-interface {{ l.ifname }}
+{%     endif %}
+{%   endfor %}
+
+{%   if mclagcluster.transit_vlan is defined and mclagcluster.transit_ip is defined %}
+interface vlan {{ mclagcluster.transit_vlan }}
+  no shutdown
+  description MCLAG_TRANSIT_VLAN
+  ip address {{ mclagcluster.transit_ip }}
+{%     if ospf is defined %}
+{%       set pid = ospf.process|default(1) %}
+  ip ospf {{ pid }} area {{ ospf.area }}
+  ip ospf network point-to-point
+  ip ospf cost 5
+{%     endif %}
+{%     if mclagcluster.transit_mtu is defined %}
+  mtu {{ mclagcluster.transit_mtu + 32 }}
+{%     endif %}
+
+{%   endif %}
+
+{%   if anycast_vtep is defined and ospf is defined %}
+{%       set pid = ospf.process|default(1) %}
+interface loopback{{ anycast_vtep.loopback }}
+  description ANYCAST_VTEP
+  ip address {{ anycast_vtep.address }}
+  ip ospf {{ pid }} area {{ ospf.area }}
+  ip ospf passive
+
+nve
+  source-interface loopback {{ anycast_vtep.loopback }}
+{%   endif %}
+
+{% endif %}
