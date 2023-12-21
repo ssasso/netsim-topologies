@@ -66,6 +66,7 @@ groups:
 nodes:
   aggr:
     device: arubacx
+    id: 1
     module: [ ospf, bgp ]
     bgp:
       rr: True
@@ -75,15 +76,21 @@ nodes:
         ipv4: []
   sw1:
     mclagcluster.role: primary
+    id: 11
   sw2:
     mclagcluster.role: secondary
+    id: 12
   sw3:
+    id: 21
   sw4:
+    id: 22
   cl1:
     device: arubacx
+    id: 31
     module: [vlan]
   cl2:
     device: arubacx
+    id: 32
     module: [vlan]
 
 links:
