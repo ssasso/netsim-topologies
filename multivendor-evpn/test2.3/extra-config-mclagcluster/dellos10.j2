@@ -28,16 +28,5 @@ interface vlan {{ mclagcluster.transit_vlan }}
 
 {%   endif %}
 
-{%   if anycast_vtep is defined and ospf is defined %}
-{%       set pid = ospf.process|default(1) %}
-interface loopback{{ anycast_vtep.loopback }}
-  description ANYCAST_VTEP
-  ip address {{ anycast_vtep.address }}
-  ip ospf {{ pid }} area {{ ospf.area }}
-  ip ospf passive
-
-nve
-  source-interface loopback {{ anycast_vtep.loopback }}
-{%   endif %}
-
 {% endif %}
+
