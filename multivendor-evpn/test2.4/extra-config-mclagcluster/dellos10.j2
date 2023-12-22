@@ -28,40 +28,4 @@ interface vlan {{ mclagcluster.transit_vlan }}
 
 {%   endif %}
 
-{%   if anycast_vtep is defined and ospf is defined %}
-{%       set pid = ospf.process|default(1) %}
-
-{#
-
-Since DELL OS10 does not allow to change the nve source interface, we need a tweek:
-let's swap loopback 0 and loopback X
-
-1. reconfigure the new loopback with the original loopback 0 IP
-2. reconfigure all the iBGP peerings with the new “update-source”
-3. configure loopback 0 with the VTEP anycast address
-
-#}
-
-interface loopback{{ anycast_vtep.loopback }}
-  description NEW_LOOPBACK_0
-  ip address {{ loopback.ipv4 }}
-  ip ospf {{ pid }} area {{ ospf.area }}
-  ip ospf passive
-
-{%       if bgp is defined %}
-router bgp {{ bgp.as }}
-{%         for n in bgp.neighbors if n.type == 'ibgp' %}
-  neighbor {{ n.ipv4 }}
-    update-source loopback{{ anycast_vtep.loopback }}
-{%         endfor %}
-{%       endif %}
-
-interface loopback0
-  description ANYCAST_VTEP
-  ip address {{ anycast_vtep.address }}
-  ip ospf {{ pid }} area {{ ospf.area }}
-  ip ospf passive
-
-{%   endif %}
-
 {% endif %}

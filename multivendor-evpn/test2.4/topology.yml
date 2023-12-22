@@ -14,6 +14,8 @@ addressing:
     ipv4: 10.100.20.0/24
     prefix: 32
 
+defaults.vxlan.start_vni: 20000
+
 defaults.devices.dellos10:
   clab:
     image: vrnetlab/vr-ftosv:10.5.6.0
@@ -21,8 +23,9 @@ defaults.devices.dellos10:
     ansible_user: admin
     ansible_ssh_pass: admin
 
+
 # Custom plugins
-plugin: [ lag_plugin, mclagcluster_plugin ]
+plugin: [ lag_plugin, mclagcluster_plugin, vxlan_anycast_plugin ]
 
 module: [ ospf, vlan, vrf, gateway, vxlan, bgp ]
 
@@ -39,6 +42,7 @@ groups:
     members: [ sw1, sw2 ]
     device: arubacx
     config: [ extra-config-mclagcluster, extra-config-lag ]
+    vxlan_anycast: true
     node_data:
       mclagcluster.id: 1
       mclagcluster.transit_vlan: 4000
@@ -47,6 +51,7 @@ groups:
     members: [ sw3, sw4 ]
     device: dellos10
     config: [ extra-config-mclagcluster, extra-config-lag ]
+    vxlan_anycast: true
     node_data:
       mclagcluster.id: 2
       mclagcluster.transit_vlan: 4000
