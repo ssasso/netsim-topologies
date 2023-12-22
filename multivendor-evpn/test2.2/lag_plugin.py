@@ -10,8 +10,7 @@ def init(topology: Box) -> None:
     topology.defaults.attributes.interface.lag.mclag = 'bool'
     topology.defaults.attributes.link.isl = 'bool'
     topology.defaults.attributes.node.mclagcluster = None
-    # workaround for VLAN plugin
-    topology.defaults.vlan.attributes.phy_ifattr.append('lag')
+    topology.defaults.vlan.attributes.phy_ifattr.lag = None
     return
 
 

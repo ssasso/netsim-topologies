@@ -7,8 +7,7 @@ def init(topology: Box) -> None:
     print('LAG PLUGIN INIT')
     # Define custom data for lag, and set attribute to preserve
     topology.defaults.attributes.interface.lag.id = 'int'
-    # workaround for VLAN plugin
-    topology.defaults.vlan.attributes.phy_ifattr.append('lag')
+    topology.defaults.vlan.attributes.phy_ifattr.lag = None
     return
 
 
