@@ -1,0 +1,129 @@
+provider: clab
+
+addressing:
+  loopback:
+    ipv4: 10.100.0.0/24
+    prefix: 32
+  router_id:
+    ipv4: 10.100.0.0/24
+    prefix: 32
+  transit:
+    ipv4: 10.133.0.0/24
+    prefix: 30
+  anycast_vtep:
+    ipv4: 10.100.20.0/24
+    prefix: 32
+
+defaults.vxlan.start_vni: 20000
+
+defaults.devices.dellos10:
+  clab:
+    image: vrnetlab/vr-ftosv:10.5.6.0
+  group_vars:
+    ansible_user: admin
+    ansible_ssh_pass: admin
+
+
+# Custom plugins
+plugin: [ lag_plugin, mclagcluster_plugin, vxlan_anycast_plugin ]
+
+module: [ ospf, vlan, vrf, gateway, vxlan, bgp ]
+
+vrfs:
+  tenant:
+    ospf: false
+
+vlans:
+  red:
+    vrf: tenant
+
+groups:
+  mclag_dell:
+    members: [ sw3, sw4 ]
+    device: dellos10
+    config: [ extra-config-mclagcluster, extra-config-lag ]
+    vxlan_anycast: true
+    node_data:
+      mclagcluster.id: 2
+      mclagcluster.transit_vlan: 4000
+      mclagcluster.transit_mtu: 1600
+  leaf:
+    members: [ sw1, sw3, sw4 ]
+    node_data:
+      bgp:
+        as: 65000
+        advertise_loopback: false
+        activate:
+          ipv4: [ ebgp ]
+  other_lag_devs:
+    members: [ cl2 ]
+    config: [ extra-config-lag ]
+
+nodes:
+  aggr:
+    device: arubacx
+    id: 1
+    module: [ ospf, bgp ]
+    bgp:
+      rr: True
+      as: 65000
+      advertise_loopback: false
+      activate:
+        ipv4: []
+  sw1:
+    id: 11
+    device: arubacx
+  sw3:
+    id: 21
+  sw4:
+    id: 22
+  cl1:
+    device: arubacx
+    id: 31
+    module: [vlan]
+  cl2:
+    device: arubacx
+    id: 32
+    module: [vlan]
+
+links:
+- aggr:
+  sw1:
+  ospf.cost: 10
+- aggr:
+  sw3:
+  ospf.cost: 10
+- aggr:
+  sw4:
+  ospf.cost: 10
+
+# ISL Links
+- sw3:
+  sw4:
+  prefix: false
+  isl: true
+
+# Links to Client Switches
+# SW1 to CL1
+- sw1:
+  cl1:
+  vlan.access: red
+  gateway: true
+# SW{3,4} to CL2
+- sw3:
+    lag.id: 1
+    lag.mclag: true
+  cl2:
+    lag.id: 1
+  prefix: false
+  gateway: true
+  vlan.access: red
+- sw4:
+    lag.id: 1
+    lag.mclag: true
+  cl2:
+    lag.id: 1
+  prefix: false
+  gateway: true
+  vlan.access: red
+
