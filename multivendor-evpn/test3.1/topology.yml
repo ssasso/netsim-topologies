@@ -8,7 +8,7 @@ addressing:
     prefix: 30
   anycast_vtep:
     ipv4: 10.100.20.0/24
-    prefix: 32s
+    prefix: 32
 
 # Custom plugins
 plugin: [ lag_plugin, mclagcluster_plugin, vxlan_anycast_plugin ]
