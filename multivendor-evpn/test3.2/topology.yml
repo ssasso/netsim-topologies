@@ -1,0 +1,185 @@
+---
+
+defaults.sources.extra: [ ../netlab-defaults.yml ]
+
+addressing:
+  transit:
+    ipv4: 10.133.0.0/24
+    prefix: 30
+  anycast_vtep:
+    ipv4: 10.100.20.0/24
+    prefix: 32
+
+# Custom plugins
+plugin: [ lag_plugin, mclagcluster_plugin, vxlan_anycast_plugin ]
+
+module: [ vlan, vrf, vxlan, ospf, bgp, evpn, gateway ]
+
+vrfs:
+  tenant:
+    ospf: false
+    evpn.transit_vni: True
+
+vlans:
+  red:
+    vrf: tenant
+    gateway: True
+  blue:
+    vrf: tenant
+    gateway: True
+  green:
+    vrf: tenant
+    gateway: True
+
+groups:
+  mclag_dell:
+    members: [ sw3, sw4 ]
+    device: dellos10
+    config: [ extra-config-mclagcluster, extra-config-lag ]
+    vxlan_anycast: true
+    node_data:
+      mclagcluster.id: 2
+      mclagcluster.transit_vlan: 4000
+      mclagcluster.transit_mtu: 1600
+  leaf:
+    members: [ sw1, sw3, sw4, sw5 ]
+    node_data:
+      bgp:
+        as: 65000
+        advertise_loopback: false
+        activate:
+          ipv4: [ ebgp ]
+  other_lag_devs:
+    members: [ cl2 ]
+    config: [ extra-config-lag ]
+  linux:
+    members: [ h1, h2, h3, h4, h5, h6 ]
+    device: linux
+    module: []
+
+nodes:
+  spine:
+    device: arubacx
+    id: 1
+    module: [ ospf, bgp, evpn ]
+    bgp:
+      rr: True
+      as: 65000
+      advertise_loopback: false
+      activate:
+        ipv4: []
+  sw1:
+    id: 11
+    device: arubacx
+  sw3:
+    id: 21
+  sw4:
+    id: 22
+  sw5:
+    id: 31
+    device: eos
+  cl2:
+    device: arubacx
+    id: 40
+    module: [vlan]
+    vlan.mode: bridge
+  h1:
+    id: 41
+  h2:
+    id: 42
+  h3:
+    id: 43
+  h4:
+    id: 44
+  h5:
+    id: 45
+  h6:
+    id: 46
+  rtr:
+    id: 5
+    device: eos
+    module: [bgp]
+    bgp:
+      as: 65222
+      advertise_loopback: True
+
+links:
+- spine:
+  sw1:
+  ospf.cost: 10
+  mtu: 1600
+- spine:
+  sw3:
+  ospf.cost: 10
+  mtu: 1600
+- spine:
+  sw4:
+  ospf.cost: 10
+  mtu: 1600
+- spine:
+  sw5:
+  ospf.cost: 10
+  mtu: 1600
+
+# ISL Links
+- sw3:
+  sw4:
+  prefix: false
+  isl: true
+
+# Links to Client Hosts & Switches
+# SW1 to H1
+- sw1:
+    vlan.access: red
+  h1:
+  gateway: true
+- sw1:
+    vlan.access: blue
+  h5:
+  gateway: true
+
+# SW{3,4} to CL2 (fan-out switch)
+- sw3:
+    lag.id: 1
+    lag.mclag: true
+  cl2:
+    lag.id: 1
+  prefix: false
+  gateway: true
+  vlan.trunk: [ red,blue,green ]
+- sw4:
+    lag.id: 1
+    lag.mclag: true
+  cl2:
+    lag.id: 1
+  prefix: false
+  gateway: true
+  vlan.trunk: [ red,blue,green ]
+# CL2 to H2
+- cl2:
+    vlan.access: red
+  h2:
+  gateway.id: -2
+- cl2:
+    vlan.access: blue
+  h4:
+  gateway.id: -2
+
+- sw5:
+    vlan.access: red
+  h3:
+  gateway: true
+
+- sw5:
+    vlan.access: green
+  h6:
+  gateway: true
+
+
+- sw1:
+    vrf: tenant
+  rtr:
+
+# RTR Stub
+- rtr:
+
