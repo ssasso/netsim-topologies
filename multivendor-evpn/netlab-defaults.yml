@@ -19,4 +19,8 @@ devices.dellos10:
     ansible_user: admin
     ansible_ssh_pass: admin
 
+devices.eos:
+  clab:
+    image: ceos:4.31.1F
+
 

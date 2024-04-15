@@ -1,0 +1,61 @@
+---
+
+provider: clab
+
+
+defaults.devices.dellos10:
+  clab:
+    image: vrnetlab/vr-ftosv:10.5.6.0
+  group_vars:
+    ansible_user: admin
+    ansible_ssh_pass: admin
+
+defaults.devices.eos:
+  clab:
+    image: ceos:4.31.1F
+
+addressing:
+  loopback:
+    ipv4: 10.255.0.0/24
+    prefix: 32
+  router_id:
+    ipv4: 10.255.0.0/24
+    prefix: 32
+
+module: [ ospf, bgp ]
+
+nodes:
+  r1:
+    device: dellos10
+    bgp.as: 100
+    bgp.originate: [ 100.64.1.0/24 ]
+  r2:
+    device: arubacx
+    bgp.as: 100
+    bgp.originate: [ 100.64.2.0/24 ]
+  r3:
+    device: eos
+    bgp.as: 100
+    bgp.originate: [ 100.64.3.0/24 ]
+
+links:
+- r1:
+  r2:
+  ospf.area: 0
+- r1:
+  r3:
+  ospf.area: 0
+- r2:
+  r3:
+  ospf.area: 0
+- r1:
+  ospf.passive: true
+  ospf.cost: 11
+- r2:
+  ospf.passive: true
+  ospf.cost: 22
+- r3:
+  ospf.passive: true
+  ospf.cost: 33
+
+_include: [ validate.yml ]
