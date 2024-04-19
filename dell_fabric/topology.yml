@@ -1,0 +1,141 @@
+---
+
+provider: clab
+
+addressing:
+  loopback:
+    ipv4: 10.255.255.0/24
+    prefix: 32
+  router_id:
+    ipv4: 10.255.255.0/24
+    prefix: 32
+  lan:
+    ipv4: 172.16.0.0/16
+    ipv6: fd0a:db8:a::/48
+  extp2p:
+    ipv4: 10.50.0.0/16
+    prefix: 30
+    ipv6: fd0f:db8:f::/48
+
+defaults.vxlan.start_vni: 20000
+defaults.evpn.start_transit_vni: 10000
+
+bgp.as: 65000
+
+defaults.devices.dellos10:
+  clab:
+    image: vrnetlab/vr-ftosv:10.5.6.1
+  group_vars:
+    ansible_user: admin
+    ansible_ssh_pass: admin
+
+module: [ vlan, vrf, vxlan, ospf, bgp, evpn, gateway ]
+
+vrfs:
+  tenant:
+    ospf: false
+    evpn.transit_vni: True
+
+vlans:
+  red:
+    vrf: tenant
+    gateway: True
+
+groups:
+  linux:
+    members: [ h1, h2 ]
+    device: linux
+    module: []
+  vy_ext:
+    members: [ e1, e2, e3, e4, e5, e6 ]
+    device: vyos
+    module: []
+    _auto_create: true
+  routers:
+    members: [ r1, r2 ]
+    device: vyos
+    module: [ bgp ]
+
+nodes:
+  sw1:
+    device: dellos10
+    id: 1
+    config: [ custom_virtual_network.j2 ]
+    bgp:
+      advertise_loopback: false
+      activate:
+        ipv4: [ ebgp ]
+  sw2:
+    device: dellos10
+    id: 2
+    config: [ custom_virtual_network.j2 ]
+    bgp:
+      advertise_loopback: false
+      activate:
+        ipv4: [ ebgp ]
+  r1:
+    id: 11
+    bgp:
+      as: 64901
+      advertise_loopback: true
+  r2:
+    id: 12
+    bgp:
+      as: 64902
+      advertise_loopback: true
+  h1:
+    id: 21
+  h2:
+    id: 22
+
+
+links:
+- sw1:
+  sw2:
+  ospf.cost: 10
+  mtu: 1600
+
+# Hosts for L2+L3 IRB
+- sw1:
+    vlan.access: red
+  h1:
+  gateway: true
+- sw2:
+    vlan.access: red
+  h2:
+  gateway: true
+
+# Routers for Type 5
+- sw1:
+    vrf: tenant
+  r1:
+  pool: extp2p
+- sw2:
+    vrf: tenant
+  r2:
+  pool: extp2p
+
+# RTR Stub
+- r1:
+- r2:
+
+# External Links for manual testing
+- sw1:
+  e1:
+  prefix: false
+- sw1:
+  e2:
+  prefix: false  
+- sw1:
+  e3:
+  prefix: false
+- sw2:
+  e4:
+  prefix: false
+- sw2:
+  e5:
+  prefix: false
+- sw2:
+  e6:
+  prefix: false
+

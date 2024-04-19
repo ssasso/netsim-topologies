@@ -1,0 +1,32 @@
+{# custom additional virtual networks #}
+
+{% for v in [ 2001, 2002, 2003 ] %}
+virtual-network {{v}}
+  vxlan-vni {{v}}
+
+evpn
+  evi {{v}}
+    vni {{v}}
+    rd {{bgp.router_id}}:{{v}}
+    route-target {{bgp.as}}:{{v}} both
+
+{% endfor %}
+
+
+{# port assignment #}
+interface range ethernet 1/1/4-1/1/6
+  switchport mode trunk
+  no switchport access vlan
+exit
+
+virtual-network untagged-vlan 4093
+
+virtual-network 2001
+  member-interface ethernet 1/1/4 untagged
+
+virtual-network 2002
+  member-interface ethernet 1/1/5 vlan-tag 2
+
+virtual-network 2003
+  member-interface ethernet 1/1/6 vlan-tag 2
+
