@@ -1,0 +1,253 @@
+---
+
+defaults.sources.extra: [ ../netlab-defaults.yml ]
+
+defaults.devices.arubacx:
+  clab:
+    image: vrnetlab/vr-aoscx:20231110145644
+
+addressing:
+  transit:
+    ipv4: 10.133.0.0/24
+    prefix: 30
+  anycast_vtep:
+    ipv4: 10.100.20.0/24
+    prefix: 32
+
+# Custom plugins
+plugin: [ lag_plugin, mclagcluster_plugin, vxlan_anycast_plugin, bgp.session, bgp.policy ]
+
+vrfs:
+  internet:
+    ospf: false
+    evpn.transit_vni: True
+
+vlans:
+  nam_inet:
+    vrf: internet
+    prefix: 66.66.100.0/24
+  ppp_inet:
+    vrf: internet
+    prefix: 66.66.101.0/24
+  rsc_inet:
+    vrf: internet
+    prefix: 66.66.102.0/24
+
+groups:
+  isp:
+    members: [ isp1, isp2, ixp101, ixp102, ixp201 ]
+    device: vyos
+    module: [ bgp ]
+  igw:
+    members: [ igw01, igw02 ]
+    device: vyos
+    module: [ ospf, bgp ]
+    bgp.as: 66
+  clients:
+    members: [ clppp, clrsc ]
+    device: linux
+    module: []
+  nam:
+    members: [ swnam1, swnam2 ]
+    device: arubacx
+    module: [ vlan, vrf, vxlan, ospf, bgp, evpn ]
+    config: [ extra-config-mclagcluster, extra-config-lag ]
+    vxlan_anycast: true
+    mclagcluster.id: 1
+    mclagcluster.transit_vlan: 4000
+    mclagcluster.transit_mtu: 1600
+    bgp:
+      as: 65000
+      advertise_loopback: false
+      activate:
+        ipv4: [ ebgp ]
+      rr: True
+  other_evpn:
+    members: [ swppp, swrsc ]
+    device: arubacx
+    module: [ vlan, vrf, vxlan, ospf, bgp, evpn ]
+    bgp:
+      as: 65000
+      advertise_loopback: false
+      activate:
+        ipv4: [ ebgp ]
+
+
+nodes:
+  swnam1:
+    mclagcluster.role: primary
+    id: 1
+  swnam2:
+    mclagcluster.role: secondary
+    id: 2
+  swppp:
+    id: 3
+  swrsc:
+    id: 4
+  clppp:
+    id: 5
+  clrsc:
+    id: 6
+  igw01:
+    id: 11
+    loopback:
+      ipv4: 66.66.66.1/32
+    config: [ extra-igw01.j2 ]
+  igw02:
+    id: 12
+    loopback:
+      ipv4: 66.66.66.2/32
+    config: [ extra-igw02.j2 ]
+  isp1:
+    loopback:
+      ipv4: 1.1.1.1/32
+    bgp:
+      as: 1
+      originate: [ 1.1.1.0/24, 1.1.2.0/24, 1.1.3.0/24, 1.2.1.0/24, 1.2.2.0/24, 1.3.1.0/24, 1.3.2.0/24 ]
+  isp2:
+    loopback:
+      ipv4: 2.2.2.2/32
+    bgp:
+      as: 2
+      originate: [ 2.1.1.0/24, 2.1.2.0/24, 2.1.3.0/24, 2.2.1.0/24, 2.2.2.0/24, 2.3.1.0/24, 2.3.2.0/24 ]
+  ixp101:
+    loopback:
+      ipv4: 101.101.101.101/32
+    bgp:
+      as: 101
+      originate: [ 101.101.1.0/24 ]
+  ixp102:
+    loopback:
+      ipv4: 102.102.102.102/32
+    bgp:
+      as: 102
+      originate: [ 102.102.1.0/24, 102.102.2.0/24 ]
+  ixp201:
+    loopback:
+      ipv4: 201.201.201.201/32
+    bgp:
+      as: 201
+      originate: [ 201.201.1.0/24, 201.201.2.0/24, 201.201.3.0/24 ]
+
+
+links:
+# ISL Links
+- swnam1:
+  swnam2:
+  prefix: false
+  isl: true
+  
+# Backbone NAM-PPP-RSC
+## NAM-PPP
+- swnam1:
+  swppp:
+  ospf.cost: 10
+- swnam2:
+  swppp:
+  ospf.cost: 10
+## NAM-RSC
+- swnam1:
+  swrsc:
+  ospf.cost: 10
+- swnam2:
+  swrsc:
+  ospf.cost: 10
+## PPP-RSC
+- swppp:
+  swrsc:
+  ospf.cost: 30
+
+# IGW links + backbone
+## IGW to IGW
+- igw01:
+  igw02:
+  prefix: 66.66.0.0/30
+## NAM 1 to IGW 1
+- swnam1:
+    vrf: internet
+  igw01:
+    bgp.default_originate: True
+  prefix: 66.66.1.0/30
+## NAM 1 to IGW 2
+- swnam1:
+    vrf: internet
+  igw02:
+    bgp.default_originate: True
+  prefix: 66.66.2.0/30
+## NAM 2 to IGW 1
+- swnam2:
+    vrf: internet
+  igw01:
+    bgp.default_originate: True
+  prefix: 66.66.1.4/30
+## NAM 2 to IGW 2
+- swnam2:
+    vrf: internet
+  igw02:
+    bgp.default_originate: True
+  prefix: 66.66.2.4/30
+
+
+# Links to Clients
+- swppp:
+    vlan.access: ppp_inet
+  clppp:
+- swrsc:
+    vlan.access: rsc_inet
+  clrsc:
+
+# Fake links required to create VTEP on swnamX
+- swnam1:
+    vlan.access: nam_inet
+- swnam2:
+    vlan.access: nam_inet
+
+# IGW Internet Links
+## IGW 1 to peering LAN 1
+- igw01:
+    bgp.remove_private_as: True
+    bgp.locpref: 200
+    bgp.med: 50
+  ixp101:
+  ixp102:
+  prefix: 90.100.1.0/24
+  type: lan
+
+## IGW 2 to peering LAN 2
+- igw02:
+    bgp.remove_private_as: True
+    bgp.locpref: 200
+    bgp.med: 50
+  ixp201:
+  prefix: 90.100.2.0/24
+  type: lan
+
+## IGW 1 to ISP1
+- igw01:
+    bgp.remove_private_as: True
+    bgp.locpref: 50
+    bgp.med: 100
+  isp1:
+  prefix: 1.200.1.0/30
+
+## IGW 1 to ISP2
+- igw01:
+    bgp.remove_private_as: True
+    bgp.locpref: 50
+    bgp.med: 100
+  isp2:
+  prefix: 2.222.0.0/30
+
+## IGW 2 to ISP1
+- igw02:
+    bgp.remove_private_as: True
+    bgp.locpref: 50
+    bgp.med: 100
+  isp1:
+  prefix: 1.200.2.0/30
+
+# Internet link between ISP 1 and 2
+- isp1:
+  isp2:
+  prefix: 1.255.255.0/30
+

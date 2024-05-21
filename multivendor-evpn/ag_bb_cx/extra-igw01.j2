@@ -1,0 +1,22 @@
+#!/bin/vbash
+source /opt/vyatta/etc/functions/script-template
+
+if [ "$(id -g -n)" != 'vyattacfg' ] ; then
+    exec sg vyattacfg -c "/bin/vbash $(readlink -f $0) $@"
+fi
+
+# Configuration items start here
+
+configure
+
+{% set rmaps = ['bp-ixp101-3-out','bp-ixp102-4-out','bp-isp1-5-out','bp-isp2-6-out'] %}
+
+{% include 'extra-igw-common.j2' %}
+
+# Commit, save and exit from subshell
+
+commit
+save
+exit
+
+
