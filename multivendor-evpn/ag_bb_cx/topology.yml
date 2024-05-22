@@ -162,29 +162,38 @@ links:
 - igw01:
   igw02:
   prefix: 66.66.0.0/30
+
 ## NAM 1 to IGW 1
 - swnam1:
     vrf: internet
   igw01:
     bgp.default_originate: True
+    bgp.locpref: 100
+    bgp.med: 10
   prefix: 66.66.1.0/30
 ## NAM 1 to IGW 2
 - swnam1:
     vrf: internet
   igw02:
     bgp.default_originate: True
+    bgp.locpref: 100
+    bgp.med: 10
   prefix: 66.66.2.0/30
 ## NAM 2 to IGW 1
 - swnam2:
     vrf: internet
   igw01:
     bgp.default_originate: True
+    bgp.locpref: 100
+    bgp.med: 10
   prefix: 66.66.1.4/30
 ## NAM 2 to IGW 2
 - swnam2:
     vrf: internet
   igw02:
     bgp.default_originate: True
+    bgp.locpref: 100
+    bgp.med: 10
   prefix: 66.66.2.4/30
 
 

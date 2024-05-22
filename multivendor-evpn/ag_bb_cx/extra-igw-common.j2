@@ -1,13 +1,96 @@
 
+{# prefix list & aggregate #}
 set policy prefix-list myself rule 1 action 'permit'
 set policy prefix-list myself rule 1 prefix '66.66.0.0/16'
 
 set protocols bgp address-family ipv4-unicast aggregate-address 66.66.0.0/16
+
+
+{# update existing route maps #}
 
 {% for m in rmaps %}
 
 set policy route-map {{m}} rule 10 match ip address prefix-list myself
 set policy route-map {{m}} rule 99 action deny
 
+{# since this can be executed *before* the bgp.policy part, let's add the permit action to rule 10 #}
+set policy route-map {{m}} rule 10 action permit
+
+{% endfor %}
+
+
+{# create basic route maps for IGW peers #}
+
+set policy route-map igw-peer-in rule 100 action permit
+set policy route-map igw-peer-out rule 100 action permit
+
+{% for p in igw_peers %}
+set protocols bgp neighbor {{p}} address-family ipv4-unicast route-map export 'igw-peer-out'
+set protocols bgp neighbor {{p}} address-family ipv4-unicast route-map import 'igw-peer-in'
+{% endfor %}
+
+
+{# communities & co #}
+
+{% for r in ixp_in_maps %}
+set policy route-map {{r}} rule 10 set community add 66:200
+set policy route-map {{r}} rule 10 set community add {{my_comm}}
+{# permit workaround #}
+set policy route-map {{r}} rule 10 action permit
+{% endfor %}
+
+{% for r in isp_in_maps %}
+set policy route-map {{r}} rule 10 set community add 66:100
+set policy route-map {{r}} rule 10 set community add {{my_comm}}
+{# permit workaround #}
+set policy route-map {{r}} rule 10 action permit
+{% endfor %}
+
+set policy route-map igw-peer-out rule 100 set community add 66:66
+
+
+
+
+{# filters to SWNAM #}
+
+set policy community-list igw_peer rule 1 action 'permit'
+set policy community-list igw_peer rule 1 regex '66:66'
+
+set policy community-list ixp_peer rule 1 action 'permit'
+set policy community-list ixp_peer rule 1 regex '66:200'
+
+set policy community-list isp_peer rule 1 action 'permit'
+set policy community-list isp_peer rule 1 regex '66:100'
+
+set policy prefix-list def_route rule 1 action 'permit'
+set policy prefix-list def_route rule 1 prefix '0.0.0.0/0'
+
+
+{% for m in [ 'bp-swnam1-1-out', 'bp-swnam2-2-out' ] %}
+{# lower rule < 10 to drop ISP prefixes #}
+set policy route-map {{m}} rule 4 action 'deny'
+set policy route-map {{m}} rule 4 match community community-list isp_peer
+
+{# rule < 10 to set med 15 to routes received from other IGW #}
+set policy route-map {{m}} rule 5 action 'permit'
+set policy route-map {{m}} rule 5 match community community-list igw_peer
+set policy route-map {{m}} rule 5 set metric 15
+
+{# rule 10 --> use it for IXP peers #}
+set policy route-map {{m}} rule 10 action 'permit'
+set policy route-map {{m}} rule 10 match community community-list ixp_peer
+
+{# rule 99 --> deny #}
+set policy route-map {{m}} rule 99 action deny
+
+{% endfor %}
+
+{# default originate rule towards SWNAM #}
+
+set policy route-map def-originate-policy rule 1 action permit
+set policy route-map def-originate-policy rule 1 set metric {{default_route_med|default('10')}}
+
+{% for p in def_originate_peers|default([]) %}
+set protocols bgp neighbor {{p}} address-family ipv4-unicast default-originate route-map def-originate-policy
 {% endfor %}
 

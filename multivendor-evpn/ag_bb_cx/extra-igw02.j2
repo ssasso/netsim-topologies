@@ -10,6 +10,14 @@ fi
 configure
 
 {% set rmaps = ['bp-ixp201-3-out','bp-isp1-4-out'] %}
+{% set igw_peers = [ '66.66.66.1' ] %}
+
+{% set ixp_in_maps = [ 'bp-ixp201-3-in' ] %}
+{% set isp_in_maps = [ 'bp-isp1-4-in' ] %}
+{% set my_comm = '66:2' %}
+
+{% set def_originate_peers = ['66.66.2.2', '66.66.2.6'] %}
+{% set default_route_med = '22' %}
 
 {% include 'extra-igw-common.j2' %}
 
