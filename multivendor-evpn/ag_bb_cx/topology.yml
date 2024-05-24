@@ -155,7 +155,7 @@ links:
 ## PPP-RSC
 - swppp:
   swrsc:
-  ospf.cost: 30
+  ospf.cost: 15
 
 # IGW links + backbone
 ## IGW to IGW
