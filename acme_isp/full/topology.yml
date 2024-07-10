@@ -83,13 +83,16 @@ nodes:
   c1host:
     id: 21
     device: linux
+    image: ssasso/netlab-linux-host:latest
 ## Customer 2 and 3, only Hosts
   c2host:
     id: 22
     device: linux
+    image: ssasso/netlab-linux-host:latest
   c3host:
     id: 23
     device: linux
+    image: ssasso/netlab-linux-host:latest
 # Transit Providers
   transit1:
     id: 31
