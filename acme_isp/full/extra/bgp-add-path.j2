@@ -1,0 +1,10 @@
+! configure iBGP add path (and max paths) for RR and clients
+
+router bgp {{ bgp.as }}
+ address-family ipv4 unicast
+  maximum-paths 8
+  maximum-paths ibgp 8
+{% for n in bgp.neighbors if n.type == 'ibgp' %}
+  neighbor {{ n.ipv4 }} soft-reconfiguration inbound
+  neighbor {{ n.ipv4 }} addpath-tx-all-paths
+{% endfor %}

@@ -1,0 +1,7 @@
+
+{% set _empty_as_path_route_maps = [ 'bp-winsrt-1-out' ] %}
+{% include '_filter_empty_as_path_out.j2' %}
+
+{% set _aggregates_filter_route_maps = [ 'bp-winsrt-1-out' ] %}
+{% set _aggregates_filter_routes = [ '100.100.0.0/20' ] %}
+{% include '_filter_aggregates_out.j2' %}

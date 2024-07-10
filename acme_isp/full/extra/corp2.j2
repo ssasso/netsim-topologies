@@ -1,0 +1,10 @@
+!
+! filter inbound routes from Customer 1 to allow only its own subnet
+!
+
+ip prefix-list customer_1 seq 10 permit 100.100.15.0/24
+
+route-map bp-c1rt-1-in permit 10
+  match ip address prefix-list customer_1
+!
+route-map bp-c1rt-1-in deny 99
