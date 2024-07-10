@@ -1,0 +1,73 @@
+# Validate ACME LAB
+---
+
+ospf_c1_c2:
+  description: Check the CORE-1 to CORE-2 OSPF session
+  nodes: [ core1 ]
+  plugin: ospf_neighbor(nodes.core2.ospf.router_id)
+
+pfx_c1_ospf:
+  description: Check for OSPF prefix for CORE-1 loopback
+  pass: The CORE-1 loopback is redistributed back into OSPF
+  fail: The CORE-1 loopback is not redistributed back into OSPF
+  nodes: [ igw1, igw2, ixp, corp1, corp2, bras ]
+  plugin: ospf_prefix(nodes.core1.loopback.ipv4)
+
+pfx_c2_ospf:
+  description: Check for OSPF prefix for CORE-2 loopback
+  pass: The CORE-2 loopback is redistributed back into OSPF
+  fail: The CORE-2 loopback is not redistributed back into OSPF
+  nodes: [ igw1, igw2, ixp, corp1, corp2, bras ]
+  plugin: ospf_prefix(nodes.core2.loopback.ipv4)
+
+ibgp_c1:
+  description: Check IBGP session towards CORE-1
+  fail: IBGP session to CORE-1 is not established
+  nodes: [ core2, igw1, igw2, ixp, corp1, corp2, bras ]
+  plugin: bgp_neighbor(node.bgp.neighbors,'core1')
+  stop_on_error: True
+
+ibgp_c2:
+  description: Check IBGP session towards CORE-2
+  fail: IBGP session to CORE-2 is not established
+  nodes: [ core1, igw1, igw2, ixp, corp1, corp2, bras ]
+  plugin: bgp_neighbor(node.bgp.neighbors,'core2')
+  stop_on_error: True
+
+bgp_igw1_transit:
+  description: Check the IGW-1 - TRANSIT-1 EBGP session
+  nodes: [ igw1 ]
+  plugin: bgp_neighbor(node.bgp.neighbors,'transit1')
+
+bgp_igw2_transit:
+  description: Check the IGW-2 - TRANSIT-2 EBGP session
+  nodes: [ igw2 ]
+  plugin: bgp_neighbor(node.bgp.neighbors,'transit2')
+
+pfx_tr1_bgp:
+  description: Check for BGP prefix for transit-1 loopback on BGP core routers
+  pass: The transit-1 loopback is present as a BGP prefix
+  fail: The transit-1 loopback is not advertised in BGP
+  nodes: [ core1, core2 ]
+  plugin: bgp_prefix(nodes.transit1.loopback.ipv4)
+
+pfx_tr2_bgp:
+  description: Check for BGP prefix for transit-2 loopback on BGP core routers
+  pass: The transit-2 loopback is present as a BGP prefix
+  fail: The transit-2 loopback is not advertised in BGP
+  nodes: [ core1, core2 ]
+  plugin: bgp_prefix(nodes.transit2.loopback.ipv4)
+
+
+
+
+
+c1prefix:
+  description: Check the propagation of Customer 1 prefixes
+  fail: Customer 1 prefix is not visible on the core router
+  pass: Core router is receiving prefixes from Customer 1
+  nodes: [ core1, core2 ]
+  show:
+    frr: bgp ipv4 regexp 65535 json
+  valid:
+    frr: routes

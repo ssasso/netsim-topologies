@@ -245,3 +245,7 @@ links:
 - transit1:
   transit2:
   pool: t1_p2p
+
+
+# validation
+_include: [ ../validate.yml ]
