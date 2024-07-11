@@ -4,5 +4,12 @@
         "cpus": 2,
         "memory": "8gb",
         "storage": "32gb"
-    }
+    },
+    "forwardPorts": [ 5001 ],
+    "portsAttributes": {
+        "5001": {
+            "label": "Edgeshark"
+        }
+    },
+    "postAttachCommand": "gh codespace ports visibility 5001:public -c $CODESPACE_NAME"
 }

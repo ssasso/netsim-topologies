@@ -56,7 +56,7 @@ services:
         - "--debug"
 
         ports:
-        - "8080:5001"
+        - "5001:5001"
 
         # Run as non-root user (baked into the meta data of the image anyway).
         user: "65534"
