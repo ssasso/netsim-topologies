@@ -8,8 +8,9 @@
     "forwardPorts": [ 5001 ],
     "portsAttributes": {
         "5001": {
-            "label": "Edgeshark"
+            "label": "Edgeshark",
+            "onAutoForward": "openBrowser"
         }
     },
-    "postAttachCommand": "gh codespace ports visibility 5001:public -c $CODESPACE_NAME"
+    "postAttachCommand": "./.devcontainer/post-up.sh"
 }
