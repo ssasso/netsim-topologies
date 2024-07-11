@@ -28,7 +28,8 @@ def post_node_transform(topology: Box) -> None:
 
   for n in topology.nodes:
     rtr = topology.nodes[n]
-    if rtr.device == 'frr':
+    # do it only for frr which has no bgp module already activated
+    if rtr.device == 'frr' and not 'bgp' in rtr:
       strings.print_colored_text('[FIX_FRR]  ','yellow','FIX_FRR ')
       print(f"on node {n}")
       rtr.clab.pop('config_templates', None)
