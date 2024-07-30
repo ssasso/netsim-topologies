@@ -1,0 +1,41 @@
+ping_h2:
+  description: Pinging H2 from H1 (L2VNI)
+  nodes: [ host1 ]
+  devices: [ linux ]
+  exec: "ping -c 10 host2 -A"
+  valid: |
+    "64 bytes" in stdout
+
+ping_h4:
+  description: Pinging H4 from H3 (L3VNI)
+  nodes: [ host3 ]
+  devices: [ linux ]
+  exec: "ping -c 10 host4 -A"
+  valid: |
+    "64 bytes" in stdout
+
+ping_rtr:
+  description: Pinging RTR from H3 (L3VNI)
+  nodes: [ host3 ]
+  devices: [ linux ]
+  exec: "ping -c 10 rtr -A"
+  valid: |
+    "64 bytes" in stdout
+
+prefix_on_l1:
+  description: "Check for BGP prefix 10.100.0.130/32 on L1 routing table [vrf: tenant]"
+  nodes: [ leaf1 ]
+  devices: [ arubacx ]
+  exec: "show ip route vrf tenant"
+  valid: |
+    "10.100.0.130/32" in stdout
+
+prefix_on_l2:
+  description: "Check for BGP prefix 10.100.0.130/32 on L2 routing table [vrf: tenant]"
+  nodes: [ leaf2 ]
+  devices: [ arubacx ]
+  exec: "show ip route vrf tenant"
+  valid: |
+    "10.100.0.130/32" in stdout
+
+
